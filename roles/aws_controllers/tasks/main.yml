@@ -104,7 +104,8 @@
   ansible.builtin.include_role:
     name: common
     tasks_from: generate_deployment_facts_controllers.yml
-  when: deployment_facts.validator_instances | length > 0 or deployment_facts.manager_instances | length > 0 or deployment_facts.controller_instances | length > 0
+  when: >
+    deployment_facts.validator_instances | length > 0 or deployment_facts.manager_instances | length > 0 or deployment_facts.controller_instances | length > 0
 
 - name: Check reachability of Manager instance with SSH probe
   ansible.builtin.include_role:
