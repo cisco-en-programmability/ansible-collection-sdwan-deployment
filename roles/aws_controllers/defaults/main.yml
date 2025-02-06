@@ -36,14 +36,14 @@ default_vbond_ip: 192.168.1.199  # default ips from official Cisco guides
 #          Controllers        #
 ###############################
 
-# vManage
-aws_vmanage_ami_id: null
-aws_vmanage_instance_type: "c5.9xlarge"
+# Manager
+aws_manager_ami_id: null
+aws_manager_instance_type: "c5.9xlarge"
 
-vmanage_default_persona: "COMPUTE_AND_DATA"
-site_id_vmanage: 100
+manager_default_persona: "COMPUTE_AND_DATA"
+site_id_manager: 100
 
-vmanage_instances: []
+manager_instances: []
 
 # vBond
 aws_vbond_ami_id: null

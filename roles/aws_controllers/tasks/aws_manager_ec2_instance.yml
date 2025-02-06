@@ -3,7 +3,7 @@
 
 ---
 
-# For vManage:
+# For Manager:
 # 2 aws_network_interface
 # 2 aws_network_interface_attachment
 # 2 aws_eip
@@ -20,7 +20,7 @@
 # Note that we don't have mechanism yet to detect if there are already required interfaces present on AWS for
 # that particular machine. We should include here some check to verify that they exist and skip if present,
 # because ec2_eni module is not so idempotent - meaning it required eni id to detect if it exists. We don't have it.
-- name: Create network interfaces for vManage
+- name: Create network interfaces for Manager
   amazon.aws.ec2_eni:
     subnet_id: "{{ subnet_item.id }}"
     description: Network interface for SD-WAN Controller
@@ -31,7 +31,7 @@
       Creator: "{{ aws_tag_creator }}"
       Machine: "{{ hostname }}"
       VPN: "{{ subnet_item.tags.VPN }}"
-  register: network_interfaces_vmanage
+  register: network_interfaces_manager
   loop: >
         {{
             [aws_mgmt_subnet, aws_transport_subnet]
@@ -41,9 +41,9 @@
     loop_var: subnet_item
     label: "nic-{{ subnet_item.tags.Name }}"
 
-- name: Set aws_network_interfaces fact with a list of interfaces for vManage
+- name: Set aws_network_interfaces fact with a list of interfaces for Manager
   ansible.builtin.set_fact:
-    aws_network_interfaces: "{{ network_interfaces_vmanage.results | map(attribute='interface') | list }}"
+    aws_network_interfaces: "{{ network_interfaces_manager.results | map(attribute='interface') | list }}"
 
 - name: Filter aws_network_interfaces for instance creation. Set NIC facts
   ansible.builtin.set_fact:
@@ -51,10 +51,10 @@
     aws_transport_nic: "{{ aws_network_interfaces | selectattr('tags.Name', 'search', 'transport') | list | first }}"
     aws_cluster_nic: "{{ aws_network_interfaces | selectattr('tags.Name', 'search', 'cluster') | list | first | default(omit) }}"
 
-- name: Set vmanage cluster related facts
+- name: Set Manager cluster related facts
   ansible.builtin.set_fact:
-    vmanage_cluster_private_ip: "{{ aws_cluster_nic.private_ip_address }}"
-    vmanage_cluster_prefix: "{{ aws_cluster_subnet.cidr_block.split('/')[1] }}"
+    manager_cluster_private_ip: "{{ aws_cluster_nic.private_ip_address }}"
+    manager_cluster_prefix: "{{ aws_cluster_subnet.cidr_block.split('/')[1] }}"
   when:
     - aws_cluster_nic is defined
     - aws_cluster_subnet is defined
@@ -76,27 +76,27 @@
   loop_control:
     loop_var: interface_item
     label: "eip-for-{{ interface_item.tags.Name }}"
-  register: eip_vmanage
+  register: eip_manager
   retries: 3
   delay: 3
-  until: eip_vmanage is succeeded
+  until: eip_manager is succeeded
 
 # cloud-init
-- name: Set path for bootstrap configuration and vmanage persona
+- name: Set path for bootstrap configuration and Manager persona
   ansible.builtin.set_fact:
-    generated_userdata_vmanage: "{{ userdata_vmanage_path }}-{{ hostname }}"
-    vmanage_persona: "{{ persona | default(vmanage_default_persona) }}"
+    generated_userdata_manager: "{{ userdata_manager_path }}-{{ hostname }}"
+    manager_persona: "{{ persona | default(manager_default_persona) }}"
   changed_when: true
 
-- name: Template userdata file for vManage
+- name: Template userdata file for Manager
   ansible.builtin.template:
-    src: ./userdata_vmanage.j2
-    dest: "{{ generated_userdata_vmanage }}"
+    src: ./userdata_manager.j2
+    dest: "{{ generated_userdata_manager }}"
     mode: "0644"
 
-- name: Set vManage interfaces list
+- name: Set Manager interfaces list
   ansible.builtin.set_fact:
-    vmanage_interfaces:
+    manager_interfaces:
       - id: "{{ aws_mgmt_nic.id }}"
         device_index: 0
         description: "{{ aws_mgmt_nic.tags.Name }}"
@@ -104,30 +104,30 @@
         device_index: 1
         description: "{{ aws_transport_nic.tags.Name }}"
 
-- name: Add vManage cluster interface to vManage interfaces list
+- name: Add Manager cluster interface to Manager interfaces list
   ansible.builtin.set_fact:
-    vmanage_interfaces: "{{ vmanage_interfaces + [{'id': aws_cluster_nic.id, 'device_index': 2, 'description': aws_cluster_nic.tags.Name}] }}"
+    manager_interfaces: "{{ manager_interfaces + [{'id': aws_cluster_nic.id, 'device_index': 2, 'description': aws_cluster_nic.tags.Name}] }}"
   when: aws_cluster_nic is defined
 
-# vManage
-- name: Launch vManage
+# Manager
+- name: Launch Manager
   amazon.aws.ec2_instance:
     count: 1
-    instance_type: "{{ aws_vmanage_instance_type }}"
+    instance_type: "{{ aws_manager_instance_type }}"
     image:
-      id: "{{ aws_vmanage_ami_id }}"
+      id: "{{ aws_manager_ami_id }}"
     state: present
     vpc_subnet_id: "{{ aws_mgmt_subnet.id }}"
     region: "{{ aws_region }}"
     key_name: "{{ aws_key_name | default('') | bool | ternary(aws_key_name, omit) }}"
     network:
       assign_public_ip: false
-      interfaces: "{{ vmanage_interfaces }}"
+      interfaces: "{{ manager_interfaces }}"
     name: "{{ hostname }}"
     tags:
       Name: "{{ hostname }}"
       Creator: "{{ aws_tag_creator }}"
-    user_data: "{{ lookup('file', generated_userdata_vmanage) }}"
+    user_data: "{{ lookup('file', generated_userdata_manager) }}"
     volumes:
       - device_name: /dev/xvda
         ebs:
@@ -137,57 +137,57 @@
         ebs:
           volume_size: 60
           delete_on_termination: true
-  register: ec2_vmanage
+  register: ec2_manager
 
-- name: Store vManage instance details for deployment_results
+- name: Store Manager instance details for deployment_results
   ansible.builtin.set_fact:
     instance:
       hostname: "{{ hostname }}"
       system_ip: "{{ system_ip }}"
       admin_username: "{{ admin_username }}"
       admin_password: "{{ admin_password }}"
-      mgmt_public_ip: "{{ eip_vmanage.results[0].public_ip }}"
-      transport_public_ip: "{{ eip_vmanage.results[1].public_ip }}"
+      mgmt_public_ip: "{{ eip_manager.results[0].public_ip }}"
+      transport_public_ip: "{{ eip_manager.results[1].public_ip }}"
       cluster_private_ip: "{{ aws_cluster_nic.private_ip_address | default(omit) }}"
-      persona: "{{ vmanage_persona }}"
+      persona: "{{ manager_persona }}"
   changed_when: true
   notify: Show deployment_facts
-  register: _vmanage_facts
+  register: _manager_facts
   retries: 3
   delay: 5
-  until: _vmanage_facts is succeeded
+  until: _manager_facts is succeeded
 
-- name: Update deployment facts - vManage - that will be consumed by vManage-client in Ansible
+- name: Update deployment facts - Manager - that will be consumed by Manager-client in Ansible
   ansible.builtin.set_fact:
     deployment_facts:
-      vmanage_instances: "{{ deployment_facts.vmanage_instances + [instance] }}"
+      manager_instances: "{{ deployment_facts.manager_instances + [instance] }}"
       vbond_instances: "{{ deployment_facts.vbond_instances }}"
       vsmart_instances: "{{ deployment_facts.vsmart_instances }}"
 
-- name: Copy ec2 vManage resources information to log file
+- name: Copy ec2 Manager resources information to log file
   ansible.builtin.blockinfile:
     create: true
     state: present
     mode: "0644"
     insertafter: EOF
     dest: "{{ aws_deployed_controllers_data }}"
-    marker: "\n--------------    ec2 vManage   --------------\n"
-    content: "{{ ec2_vmanage | to_nice_yaml }}"
+    marker: "\n--------------    ec2 Manager   --------------\n"
+    content: "{{ ec2_manager | to_nice_yaml }}"
 
 - name: Set security group rules
   ansible.builtin.set_fact:
     sg_rules:
       - proto: all  # proto all means: `ports: all`
-        cidr_ip: "{{ eip_vmanage.results[0].public_ip }}/32"
+        cidr_ip: "{{ eip_manager.results[0].public_ip }}/32"
         rule_desc: "{{ hostname }} - mgmt (VPN 512)"
       - proto: all
-        cidr_ip: "{{ eip_vmanage.results[1].public_ip }}/32"
+        cidr_ip: "{{ eip_manager.results[1].public_ip }}/32"
         rule_desc: "{{ hostname }} - transport (VPN 0)"
 
 - name: Update security group rules to handle cluster traffic
   ansible.builtin.set_fact:
-    sg_rules: "{{ sg_rules + [{'proto': 'all', 'cidr_ip': vmanage_cluster_private_ip + '/32', 'rule_desc': hostname + ' - cluster (VPN 0)'}] }}"
-  when: vmanage_cluster_private_ip is defined
+    sg_rules: "{{ sg_rules + [{'proto': 'all', 'cidr_ip': manager_cluster_private_ip + '/32', 'rule_desc': hostname + ' - cluster (VPN 0)'}] }}"
+  when: manager_cluster_private_ip is defined
 
 - name: Configure security group
   amazon.aws.ec2_security_group:

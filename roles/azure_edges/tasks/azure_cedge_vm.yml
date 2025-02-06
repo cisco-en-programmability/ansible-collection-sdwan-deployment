@@ -3,7 +3,7 @@
 
 ---
 
-- name: "Set facts for subnets used in vManage deployment"
+- name: "Set facts for subnets used in Manager deployment"
   ansible.builtin.set_fact:
     transport_subnet: "{{ az_subnets | selectattr('type', 'equalto', 'transport') | first }}"
     mgmt_subnet: "{{ az_subnets | selectattr('type', 'equalto', 'mgmt') | first }}"
@@ -227,7 +227,7 @@
   changed_when: true
   notify: Show deployment_facts
 
-- name: Update deployment facts - cedge - that will be consumed by vManage-client in Ansible
+- name: Update deployment facts - cedge - that will be consumed by Manager-client in Ansible
   ansible.builtin.set_fact:
     deployment_facts:
       deployed_edge_instances: "{{ deployment_facts.deployed_edge_instances + [instance] }}"

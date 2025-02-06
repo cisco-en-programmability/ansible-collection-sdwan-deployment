@@ -18,7 +18,7 @@
       - instance_item.hostname | length > 0
       - instance_item.hostname | length <= 32
     fail_msg: "Verification for hostname failed, wrong hostname: {{ instance_item.hostname }}"
-  loop: "{{ vmanage_instances + vbond_instances + vsmart_instances }}"
+  loop: "{{ manager_instances + vbond_instances + vsmart_instances }}"
   loop_control:
     loop_var: instance_item
     label: "{{ instance_item.hostname }}"
@@ -38,13 +38,13 @@
     name: common
     tasks_from: az_existing_instances.yml
   vars:
-    instances_marked_for_deployment: "{{ vmanage_instances + vbond_instances + vsmart_instances }}"
+    instances_marked_for_deployment: "{{ manager_instances + vbond_instances + vsmart_instances }}"
 
-- name: Define deployment facts - that will be consumed by vManage-client in Ansible
+- name: Define deployment facts - that will be consumed by Manager-client in Ansible
   ansible.builtin.set_fact:
     deployment_facts:
       vbond_instances: []
-      vmanage_instances: []
+      manager_instances: []
       vsmart_instances: []
 
 - name: Deploy vBond - Create Virtual Machines
@@ -106,30 +106,30 @@
     loop_var: instance_item
   when: vsmart_instances is defined and (instance_item.hostname not in instances_info or not instances_info[instance_item.hostname])
 
-- name: "Deploy vManage - Create Virtual Machines"
-  ansible.builtin.include_tasks: azure_vmanage_vm.yml
+- name: "Deploy Manager - Create Virtual Machines"
+  ansible.builtin.include_tasks: azure_manager_vm.yml
   vars:
     hostname: "{{ instance_item.hostname }}"
     system_ip: "{{ instance_item.system_ip }}"
     site_id: "{{ instance_item.site_id }}"
     persona: "{{ instance_item.persona }}"
-  loop: "{{ vmanage_instances }}"
+  loop: "{{ manager_instances }}"
   loop_control:
     loop_var: instance_item
-  when: vmanage_instances is defined and (instance_item.hostname not in instances_info or not instances_info[instance_item.hostname])
+  when: manager_instances is defined and (instance_item.hostname not in instances_info or not instances_info[instance_item.hostname])
 
 - name: "Extract deployment facts"
   ansible.builtin.include_role:
     name: common
     tasks_from: generate_deployment_facts_controllers.yml
-  when: deployment_facts.vbond_instances | length > 0 or deployment_facts.vmanage_instances | length > 0 or deployment_facts.vsmart_instances | length > 0
+  when: deployment_facts.vbond_instances | length > 0 or deployment_facts.manager_instances | length > 0 or deployment_facts.vsmart_instances | length > 0
 
-- name: "Check reachability of vManage instance with SSH probe"
+- name: "Check reachability of Manager instance with SSH probe"
   ansible.builtin.include_role:
     name: common
     tasks_from: wait_for_ssh_readiness
   vars:
     ssh_readiness_delay: 60
     ssh_readiness_timeout: 900
-    ssh_readiness_instances: "{{ deployment_facts.vmanage_instances }}"
-  when: vmanage_instances is defined and deployment_facts.vmanage_instances | length > 0
+    ssh_readiness_instances: "{{ deployment_facts.manager_instances }}"
+  when: manager_instances is defined and deployment_facts.manager_instances | length > 0

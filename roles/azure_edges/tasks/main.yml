@@ -40,7 +40,7 @@
   vars:
     instances_marked_for_deployment: "{{ edge_instances }}"
 
-- name: Define deployment facts - that will be consumed by vManage-client in Ansible
+- name: Define deployment facts - that will be consumed by Manager-client in Ansible
   ansible.builtin.set_fact:
     deployment_facts:
       deployed_edge_instances: []

@@ -85,7 +85,7 @@
     mode: "0644"
 
 
-# vManage
+# Manager
 - name: Launch vsmart
   amazon.aws.ec2_instance:
     count: 1
@@ -138,11 +138,11 @@
   until: _vsmart_facts is succeeded
 
 
-- name: Update deployment facts - vSmart - that will be consumed by vManage-client in Ansible
+- name: Update deployment facts - vSmart - that will be consumed by Manager-client in Ansible
   ansible.builtin.set_fact:
     deployment_facts:
       vsmart_instances: "{{ deployment_facts.vsmart_instances + [instance] }}"
-      vmanage_instances: "{{ deployment_facts.vmanage_instances }}"
+      manager_instances: "{{ deployment_facts.manager_instances }}"
       vbond_instances: "{{ deployment_facts.vbond_instances }}"
 
 

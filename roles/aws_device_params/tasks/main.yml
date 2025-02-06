@@ -13,21 +13,21 @@
     region: "{{ aws_region }}"
     filters:
       "tag:Creator": "{{ aws_tag_creator }}"
-      "tag:Name": "*vManage*"
-  register: vmanage_ec2_info
+      "tag:Name": "*Manager*"
+  register: manager_ec2_info
 
-- name: Get EIPs associated with the vManage instances
+- name: Get EIPs associated with the Manager instances
   amazon.aws.ec2_eip_info:
     region: "{{ aws_region }}"
     filters:
       "tag:Creator": "{{ aws_tag_creator }}"
-      tag:Machine: "*{{ vmanage_ec2_info.instances | map(attribute='tags.Name') | list | first }}*"
-  register: vmanage_eip_info
+      tag:Machine: "*{{ manager_ec2_info.instances | map(attribute='tags.Name') | list | first }}*"
+  register: manager_eip_info
 
 - name: Set manager authentication fact
   ansible.builtin.set_fact:
     manager_authentication:
-      url: "{{ vmanage_eip_info.addresses | selectattr('tags.VPN', 'equalto', '512') | map(attribute='public_ip') | first }}"
+      url: "{{ manager_eip_info.addresses | selectattr('tags.VPN', 'equalto', '512') | map(attribute='public_ip') | first }}"
       username: "admin"
       password: "{{ admin_password }}"
 

@@ -17,7 +17,7 @@
   ansible.builtin.set_fact:
     manager_authentication:
       url: "{{ public_ip_info.publicipaddresses |
-            selectattr('tags.Machine', 'search', 'vManage') |
+            selectattr('tags.Machine', 'search', 'Manager') |
             selectattr('tags.type', 'equalto', 'mgmt') |
             map(attribute='ip_address') |
             list | first }}"

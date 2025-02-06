@@ -53,7 +53,7 @@ Current coverage:
 - [x] Deployment on AWS
 - [x] Deployment on Azure
 - [x] Deployment of:
-  - [x] vManage
+  - [x] Manager
   - [x] vBond
   - [x] vSmart
   - [x] cEdge
@@ -125,7 +125,7 @@ ansible-galaxy install -r requirements.yml
 
 ### Prepare your configuration
 
-*Note:* Current solution supports topology that consist of vManage, vBond, vSmart and C8000V edge device.
+*Note:* Current solution supports topology that consist of Manager, vBond, vSmart and C8000V edge device.
 
 There are configuration files which has been initially filled with values:
 
@@ -235,7 +235,7 @@ is "allow-listed". See `aws_allowed_subnets` in `roles/aws_controllers/defaults/
 
 ### 2. Services status
 
-If vManage is not starting NMS service:
+If Manager is not starting NMS service:
 
 - check if your disk /opt/data is more than 20% free. Otherwise that case shutdown application as well
 - remember to make sure the sdwan manager and other sdwan virtual machines are right sized for your deployment needs - cisco's server recommendations are available here: [server-requirements](https://www.cisco.com/c/en/us/td/docs/routers/sdwan/release/notes/compatibility-and-server-recommendations/server-requirements.html)

@@ -3,7 +3,7 @@
 
 ---
 
-- name: "Set facts for subnets used in vManage deployment"
+- name: "Set facts for subnets used in Manager deployment"
   ansible.builtin.set_fact:
     transport_subnet: "{{ az_subnets | selectattr('type', 'equalto', 'transport') | first }}"
     mgmt_subnet: "{{ az_subnets | selectattr('type', 'equalto', 'mgmt') | first }}"
@@ -82,7 +82,7 @@
     loop_var: public_ip_state
     index_var: my_idx
     label: public_ip_state.state.name
-  register: vmanage_nics
+  register: manager_nics
   when:
     - public_ip_state.state is defined
 
@@ -102,23 +102,23 @@
       Organization: "{{ organization_name }}"
       VPN: "{{ cluster_subnet.VPN }}"
       type: "{{ cluster_subnet.type }}"
-  register: cluster_vmanage_nic
+  register: cluster_manager_nic
   when:
     - cluster_subnet is defined
     - cluster_subnet != ""
 
-- name: Set az_network_interfaces_vmanage fact with a list of interfaces for vmanage
+- name: Set az_network_interfaces_manager fact with a list of interfaces for Manager
   ansible.builtin.set_fact:
-    az_network_interfaces_vmanage: "{{ (vmanage_nics.results + [cluster_vmanage_nic]) | selectattr('state', 'defined') | map(attribute='state') | list }}"
-    az_public_ip_addresses_vmanage: "{{ public_ip_addresses.results | selectattr('state', 'defined') | map(attribute='state') | list }}"
+    az_network_interfaces_manager: "{{ (manager_nics.results + [cluster_manager_nic]) | selectattr('state', 'defined') | map(attribute='state') | list }}"
+    az_public_ip_addresses_manager: "{{ public_ip_addresses.results | selectattr('state', 'defined') | map(attribute='state') | list }}"
 
-- name: Filter az_network_interfaces_vmanage for instance creation. Set az_mgmt_nic and az_transport_nic facts
+- name: Filter az_network_interfaces_manager for instance creation. Set az_mgmt_nic and az_transport_nic facts
   ansible.builtin.set_fact:
-    az_mgmt_nic: "{{ az_network_interfaces_vmanage | selectattr('tags.type', 'equalto', 'mgmt') | list | first }}"
-    az_transport_nic: "{{ az_network_interfaces_vmanage | selectattr('tags.type', 'equalto', 'transport') | list | first }}"
-    az_cluster_nic: "{{ az_network_interfaces_vmanage | selectattr('tags.type', 'equalto', 'cluster') | list | first | default(omit) }}"
-    az_mgmt_public_ip: "{{ az_public_ip_addresses_vmanage | selectattr('tags.type', 'equalto', 'mgmt') | list | first }}"
-    az_transport_public_ip: "{{ az_public_ip_addresses_vmanage | selectattr('tags.type', 'equalto', 'transport') | list | first }}"
+    az_mgmt_nic: "{{ az_network_interfaces_manager | selectattr('tags.type', 'equalto', 'mgmt') | list | first }}"
+    az_transport_nic: "{{ az_network_interfaces_manager | selectattr('tags.type', 'equalto', 'transport') | list | first }}"
+    az_cluster_nic: "{{ az_network_interfaces_manager | selectattr('tags.type', 'equalto', 'cluster') | list | first | default(omit) }}"
+    az_mgmt_public_ip: "{{ az_public_ip_addresses_manager | selectattr('tags.type', 'equalto', 'mgmt') | list | first }}"
+    az_transport_public_ip: "{{ az_public_ip_addresses_manager | selectattr('tags.type', 'equalto', 'transport') | list | first }}"
 
 - name: Prepare nics_ids_list variable for VM creation
   ansible.builtin.set_fact:
@@ -137,18 +137,18 @@
     label: "{{ nic_item.id | default(omit) }}"
   when: nic_item.id is defined
 
-- name: "Set vmanage facts"
+- name: "Set Manager facts"
   ansible.builtin.set_fact:
-    vmanage_mgmt_private_ip: "{{ az_mgmt_nic.ip_configuration.private_ip_address }}"
-    vmanage_transport_private_ip: "{{ az_transport_nic.ip_configuration.private_ip_address }}"
-    vmanage_mgmt_public_ip: "{{ az_mgmt_public_ip.ip_address }}"
-    vmanage_transport_public_ip: "{{ az_transport_public_ip.ip_address }}"
-    vmanage_persona: "{{ persona | default(vmanage_default_persona) }}"
+    manager_mgmt_private_ip: "{{ az_mgmt_nic.ip_configuration.private_ip_address }}"
+    manager_transport_private_ip: "{{ az_transport_nic.ip_configuration.private_ip_address }}"
+    manager_mgmt_public_ip: "{{ az_mgmt_public_ip.ip_address }}"
+    manager_transport_public_ip: "{{ az_transport_public_ip.ip_address }}"
+    manager_persona: "{{ persona | default(manager_default_persona) }}"
 
-- name: "Set vmanage cluster related facts"
+- name: "Set Manager cluster related facts"
   ansible.builtin.set_fact:
-    vmanage_cluster_private_ip: "{{ az_cluster_nic.ip_configuration.private_ip_address }}"
-    vmanage_cluster_prefix: "{{ cluster_subnet.cidr | ansible.utils.ipaddr('prefix') }}"
+    manager_cluster_private_ip: "{{ az_cluster_nic.ip_configuration.private_ip_address }}"
+    manager_cluster_prefix: "{{ cluster_subnet.cidr | ansible.utils.ipaddr('prefix') }}"
   when:
     - az_cluster_nic is defined
     - cluster_subnet is defined
@@ -163,32 +163,32 @@
     - subnet.VPN == 0
     - subnet.type == "transport"
 
-- name: "Set path for bootstrap configuration: {{ userdata_vmanage_path }}-{{ hostname }}"
+- name: "Set path for bootstrap configuration: {{ userdata_manager_path }}-{{ hostname }}"
   ansible.builtin.set_fact:
-    generated_userdata_vmanage: "{{ userdata_vmanage_path }}-{{ hostname }}"
+    generated_userdata_manager: "{{ userdata_manager_path }}-{{ hostname }}"
   changed_when: true
 
-- name: "Template userdata file for vmanage: {{ hostname }}"
+- name: "Template userdata file for Manager: {{ hostname }}"
   ansible.builtin.template:
-    src: ./userdata_vmanage.j2
-    dest: "{{ generated_userdata_vmanage }}"
+    src: ./userdata_manager.j2
+    dest: "{{ generated_userdata_manager }}"
     mode: "0644"
 
 
-- name: "Create an image from a VHD for vManage: {{ hostname }}-image"
+- name: "Create an image from a VHD for Manager: {{ hostname }}-image"
   azure.azcollection.azure_rm_image:
     resource_group: "{{ az_resource_group }}"
     name: "{{ hostname }}-image"
     location: "{{ az_location }}"
     os_type: "Linux"
     hyper_v_generation: "V1"
-    source: "{{ az_vmanage_image_vhd_source }}"
+    source: "{{ az_manager_image_vhd_source }}"
 
-- name: "Create VM for vmanage: {{ hostname }}"
+- name: "Create VM for Manager: {{ hostname }}"
   azure.azcollection.azure_rm_virtualmachine:
     resource_group: "{{ az_resource_group }}"
     name: "{{ hostname }}"
-    vm_size: "{{ az_vmanage_vm_size }}"
+    vm_size: "{{ az_manager_vm_size }}"
     admin_username: "{{ admin_username }}-tmp"  # Not included in cloud init
     admin_password: "{{ admin_password }}"
     managed_disk_type: "Premium_LRS"
@@ -213,25 +213,25 @@
       Name: "{{ hostname }}"
       Creator: "{{ az_tag_creator }}"
       Organization: "{{ organization_name }}"
-    custom_data: "{{ lookup('file', generated_userdata_vmanage) }}"
+    custom_data: "{{ lookup('file', generated_userdata_manager) }}"
 
-- name: "Store vManage instance details for deployment_results"
+- name: "Store Manager instance details for deployment_results"
   ansible.builtin.set_fact:
     instance:
       hostname: "{{ hostname }}"
       system_ip: "{{ system_ip }}"
       admin_username: "{{ admin_username }}"
       admin_password: "{{ admin_password }}"
-      mgmt_public_ip: "{{ vmanage_mgmt_public_ip }}"
-      transport_public_ip: "{{ vmanage_transport_public_ip }}"
-      cluster_private_ip: "{{ vmanage_cluster_private_ip | default(omit) }}"
-      persona: "{{ vmanage_persona }}"
+      mgmt_public_ip: "{{ manager_mgmt_public_ip }}"
+      transport_public_ip: "{{ manager_transport_public_ip }}"
+      cluster_private_ip: "{{ manager_cluster_private_ip | default(omit) }}"
+      persona: "{{ manager_persona }}"
   changed_when: true
   notify: Show deployment_facts
 
-- name: "Update deployment facts - vManage - that will be consumed by vManage-client in Ansible"
+- name: "Update deployment facts - Manager - that will be consumed by Manager-client in Ansible"
   ansible.builtin.set_fact:
     deployment_facts:
-      vmanage_instances: "{{ deployment_facts.vmanage_instances + [instance] }}"
+      manager_instances: "{{ deployment_facts.manager_instances + [instance] }}"
       vbond_instances: "{{ deployment_facts.vbond_instances }}"
       vsmart_instances: "{{ deployment_facts.vsmart_instances }}"

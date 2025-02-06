@@ -156,7 +156,7 @@
   delay: 5
   until: _edge_facts is succeeded
 
-- name: Update deployment facts - that will be consumed by vManage-client in Ansible
+- name: Update deployment facts - that will be consumed by Manager-client in Ansible
   ansible.builtin.set_fact:
     deployment_facts:
       deployed_edge_instances: "{{ deployment_facts.deployed_edge_instances + [instance] }}"

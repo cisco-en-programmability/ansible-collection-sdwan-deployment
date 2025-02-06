@@ -63,19 +63,19 @@
     loop_var: instance_item
   when: vbond_instances is defined
 
-- name: "Generate cloudinit template for vManage instances"
+- name: "Generate cloudinit template for Manager instances"
   ansible.builtin.include_tasks: template_cloudinit.yml
   vars:
     hostname: "{{ instance_item.hostname }}"
     system_ip: "{{ instance_item.system_ip }}"
     site_id: "{{ instance_item.site_id }}"
     vpn0_default_gateway: "{{ instance_item.vpn0_default_gateway }}"
-    template_path: "./userdata_vmanage.j2"
+    template_path: "./userdata_manager.j2"
     generated_cloudinit_path: "{{ cloudinit_path | default('') }}"
-  loop: "{{ vmanage_instances }}"
+  loop: "{{ manager_instances }}"
   loop_control:
     loop_var: instance_item
-  when: vmanage_instances is defined
+  when: manager_instances is defined
 
 - name: "Generate cloudinit template for vSmart instances"
   ansible.builtin.include_tasks: template_cloudinit.yml

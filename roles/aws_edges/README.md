@@ -24,7 +24,7 @@ The `aws_edges` role is an essential component of the `cisco.sdwan_deployment` c
 - Ansible AWS modules (`amazon.aws` collection) installed.
 - Boto3 and Botocore Python libraries installed on the controlling machine to interact with AWS APIs.
 - AWS CLI configured with the appropriate permissions to create and manage AWS resources.
-- AWS EC2 AMIs for vManage, vBond, and vSmart instances must be available in your AWS account.
+- AWS EC2 AMIs for Manager, vBond, and vSmart instances must be available in your AWS account.
 
 ## Dependencies
 

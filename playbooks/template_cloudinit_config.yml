@@ -28,13 +28,13 @@ vbond_transport_public_ip: Y.Y.Y.Y
 #          Controllers        #
 ###############################
 
-# vManage
-site_id_vmanage: 100
+# Manager
+site_id_manager: 100
 
-vmanage_instances:
-  - hostname: terraformvmanage1 # "{{ resources_prefix }}-vManage"
+manager_instances:
+  - hostname: terraformmanager1 # "{{ resources_prefix }}-Manager"
     system_ip: 192.168.1.1
-    site_id: "{{ site_id_vmanage }}"
+    site_id: "{{ site_id_manager }}"
     vpn0_default_gateway: 10.0.2.1  # has to be set if cloud_provider == "azure"
 
 # vBond

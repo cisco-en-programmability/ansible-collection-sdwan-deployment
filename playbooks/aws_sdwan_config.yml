@@ -43,7 +43,7 @@ aws_subnets: |
     subnet_cidr: "10.0.2.0/24"  # default ips from official Cisco guides
     VPN: 0
     type: transport
-  {% if vmanage_instances is defined and vmanage_instances | length > 2 %}
+  {% if manager_instances is defined and manager_instances | length > 2 %}
   - name: "{{ aws_resources_prefix }}-cluster-subnet-0"
     subnet_cidr: "10.0.3.0/24"
     VPN: 0
@@ -84,16 +84,16 @@ vbond_port: 12346
 #          Controllers        #
 ###############################
 
-# vManage
-aws_vmanage_ami_id: null
-aws_vmanage_instance_type: "c5.9xlarge"
+# Manager
+aws_manager_ami_id: null
+aws_manager_instance_type: "c5.9xlarge"
 
-site_id_vmanage: 100
+site_id_manager: 100
 
-vmanage_instances:
-  - hostname: "{{ aws_resources_prefix }}-vManage"
+manager_instances:
+  - hostname: "{{ aws_resources_prefix }}-Manager"
     system_ip: 192.168.1.1
-    site_id: "{{ site_id_vmanage }}"
+    site_id: "{{ site_id_manager }}"
 
 
 # vBond

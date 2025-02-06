@@ -137,11 +137,11 @@
   delay: 5
   until: _vbond_facts is succeeded
 
-- name: Update deployment facts - vBond - that will be consumed by vManage-client in Ansible
+- name: Update deployment facts - vBond - that will be consumed by Manager-client in Ansible
   ansible.builtin.set_fact:
     deployment_facts:
       vbond_instances: "{{ deployment_facts.vbond_instances + [instance] }}"
-      vmanage_instances: "{{ deployment_facts.vmanage_instances }}"
+      manager_instances: "{{ deployment_facts.manager_instances }}"
       vsmart_instances: "{{ deployment_facts.vsmart_instances }}"
 
 - name: Copy resources information to log file

@@ -52,18 +52,18 @@
     name: common
     tasks_from: aws_existing_instances.yml
   vars:
-    instances_marked_for_deployment: "{{ vmanage_instances + vbond_instances + vsmart_instances }}"
+    instances_marked_for_deployment: "{{ manager_instances + vbond_instances + vsmart_instances }}"
 
 # cloud-init vBond data requires information about private IP assigned to mgmt interface
 # cloud-init templates require information about vBond IP
 # vbond_mgmt_private_ip & ec2_vbond_mgmt_public_ip
 # That are the reasons why vBond has to go up first (if we will use static IPs it can be changed)
 
-- name: Define deployment facts - that will be consumed by vManage-client in Ansible
+- name: Define deployment facts - that will be consumed by Manager-client in Ansible
   ansible.builtin.set_fact:
     deployment_facts:
       vbond_instances: []
-      vmanage_instances: []
+      manager_instances: []
       vsmart_instances: []
 
 - name: Deploy vBond - Create ec2 instances
@@ -77,17 +77,17 @@
     loop_var: instance_item
   when: vbond_instances is defined and (instance_item.hostname not in instances_info or not instances_info[instance_item.hostname])
 
-- name: Deploy vManage - Create ec2 instances
-  ansible.builtin.include_tasks: aws_vmanage_ec2_instance.yml
+- name: Deploy Manager - Create ec2 instances
+  ansible.builtin.include_tasks: aws_manager_ec2_instance.yml
   vars:
     hostname: "{{ instance_item.hostname }}"
     system_ip: "{{ instance_item.system_ip }}"
     site_id: "{{ instance_item.site_id }}"
     persona: "{{ instance_item.persona }}"
-  loop: "{{ vmanage_instances }}"
+  loop: "{{ manager_instances }}"
   loop_control:
     loop_var: instance_item
-  when: vmanage_instances is defined and (instance_item.hostname not in instances_info or not instances_info[instance_item.hostname])
+  when: manager_instances is defined and (instance_item.hostname not in instances_info or not instances_info[instance_item.hostname])
 
 - name: Deploy vSmart - Create ec2 instances
   ansible.builtin.include_tasks: aws_vsmart_ec2_instance.yml
@@ -104,14 +104,14 @@
   ansible.builtin.include_role:
     name: common
     tasks_from: generate_deployment_facts_controllers.yml
-  when: deployment_facts.vbond_instances | length > 0 or deployment_facts.vmanage_instances | length > 0 or deployment_facts.vsmart_instances | length > 0
+  when: deployment_facts.vbond_instances | length > 0 or deployment_facts.manager_instances | length > 0 or deployment_facts.vsmart_instances | length > 0
 
-- name: Check reachability of vManage instance with SSH probe
+- name: Check reachability of Manager instance with SSH probe
   ansible.builtin.include_role:
     name: common
     tasks_from: wait_for_ssh_readiness
   vars:
     ssh_readiness_delay: 60
     ssh_readiness_timeout: 600
-    ssh_readiness_instances: "{{ deployment_facts.vmanage_instances }}"
-  when: vmanage_instances is defined and deployment_facts.vmanage_instances | length > 0
+    ssh_readiness_instances: "{{ deployment_facts.manager_instances }}"
+  when: manager_instances is defined and deployment_facts.manager_instances | length > 0

@@ -10,25 +10,30 @@ Content-Disposition: attachment; filename="cloud-config"
 
 #cloud-config
 
+chpasswd:
+  expire: false
+  list:
+  - root:root
+  - {{ admin_username }}:{{ admin_password }}
 disk_setup:
-  /dev/disk/azure/scsi1/lun10:
+  /dev/nvme1n1:
     table_type: mbr
     layout: false
     overwrite: false
 fs_setup:
-- device: /dev/disk/azure/scsi1/lun10
+- device: /dev/nvme1n1
   label: data
   partition: none
   filesystem: ext4
   overwrite: false
 mounts:
-- [ /dev/disk/azure/scsi1/lun10, /opt/data ]
+- [ /dev/nvme1n1, /opt/data ]
 
 write_files:
 - path: /opt/web-app/etc/persona
   owner: vmanage:vmanage-admin
   permissions: '0644'
-  content: '{"persona":"{{ vmanage_persona }}"}'
+  content: '{"persona":"{{ manager_persona }}"}'
 - path: /etc/default/personality
   content: "vmanage\n"
 - path: /etc/default/inited
@@ -79,14 +84,6 @@ write_files:
               </tunnel-interface>
               <shutdown>false</shutdown>
             </interface>
-          <ip>
-            <route>
-              <prefix>0.0.0.0/0</prefix>
-              <next-hop>
-                <address>{{ vpn0_default_gateway }}</address>
-              </next-hop>
-            </route>
-          </ip>
         </vpn-instance>
         <vpn-instance>
           <vpn-id>512</vpn-id>
@@ -101,12 +98,12 @@ write_files:
       </vpn>
     </config>
 
-{% if vmanage_cluster_private_ip is defined %}
+{% if manager_cluster_private_ip is defined %}
 - path: /home/admin/customized.cfg
   content: |
     vpn 0
         interface eth2
-            ip address {{ vmanage_cluster_private_ip }}/{{ vmanage_cluster_prefix }}
+            ip address {{ manager_cluster_private_ip }}/{{ manager_cluster_prefix }}
             no shutdown
         !
     !

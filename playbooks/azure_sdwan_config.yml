@@ -28,16 +28,16 @@ az_allowed_subnets: null
 
 admin_password: null
 
-# vManage
-az_vmanage_image_vhd_source: null
-az_vmanage_vm_size: "Standard_F16s_v2"
+# Manager
+az_manager_image_vhd_source: null
+az_manager_vm_size: "Standard_F16s_v2"
 
-site_id_vmanage: 100
+site_id_manager: 100
 
-vmanage_instances:
-  - hostname: "{{ az_resources_prefix }}-vManage"
+manager_instances:
+  - hostname: "{{ az_resources_prefix }}-Manager"
     system_ip: 192.168.1.1
-    site_id: "{{ site_id_vmanage }}"
+    site_id: "{{ site_id_manager }}"
 
 
 # vBond

@@ -10,14 +10,14 @@ The `template_cloudinit` role executes the following tasks:
 - Validates the cloud provider input.
 - Asserts the presence of all required variables for cloudinit generation.
 - Prepares a directory to store the generated cloudinit files.
-- Generates cloudinit templates for vBond, vManage, vSmart, and cEdge instances.
+- Generates cloudinit templates for vBond, Manager, vSmart, and cEdge instances.
 - Displays the location and list of generated cloudinit files to the user.
 
 ## Requirements
 
 - The `cisco.sdwan_deployment` collection installed.
 - Ansible 2.16 or higher.
-- Jinja2 templates for cloud-init userdata scripts corresponding to each type of device (vBond, vManage, vSmart, cEdge).
+- Jinja2 templates for cloud-init userdata scripts corresponding to each type of device (vBond, Manager, vSmart, cEdge).
 
 ## Dependencies
 
@@ -30,11 +30,11 @@ The `template_cloudinit` role executes the following tasks:
 Variables with default values that the user may need to override:
 
 - `results_dir`: Directory to store generated cloudinit files.
-- `userdata_vmanage_path`, `userdata_vbond_path`, `userdata_vsmart_path`: Paths to templated userdata configurations for respective SD-WAN controllers.
+- `userdata_manager_path`, `userdata_vbond_path`, `userdata_vsmart_path`: Paths to templated userdata configurations for respective SD-WAN controllers.
 - `admin_username`, `admin_password`: Default admin credentials used in userdata scripts.
 - `vbond_port`, `default_vbond_ip`: Default configurations for vBond.
 - `vbond_transport_private_ip`, `vbond_transport_public_ip`: IPs for vBond, to be defined by the user if static IPs are used.
-- `site_id_vmanage`, `vmanage_instances`: Site ID and list of vManage instances.
+- `site_id_manager`, `manager_instances`: Site ID and list of Manager instances.
 - `site_id_vbond`, `vbond_instances`: Site ID and list of vBond instances.
 - `site_id_vsmart`, `vsmart_instances`: Site ID and list of vSmart instances.
 - `edge_instances`: List of cEdge instances.
