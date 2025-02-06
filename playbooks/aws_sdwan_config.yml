@@ -108,16 +108,16 @@ validator_instances:
     site_id: "{{ site_id_validator }}"
 
 
-# vSmart
-aws_vsmart_ami_id: null
-aws_vsmart_instance_type: "c5.large"
+# Controller
+aws_controller_ami_id: null
+aws_controller_instance_type: "c5.large"
 
-site_id_vsmart: 300
+site_id_controller: 300
 
-vsmart_instances:
-  - hostname: "{{ aws_resources_prefix }}-vSmart"
+controller_instances:
+  - hostname: "{{ aws_resources_prefix }}-Controller"
     system_ip: 192.168.2.1
-    site_id: "{{ site_id_vsmart }}"
+    site_id: "{{ site_id_controller }}"
 
 
 

@@ -54,10 +54,10 @@ site_id_validator: 200
 validator_instances: []
 
 
-# vSmart
-aws_vsmart_ami_id: null
-aws_vsmart_instance_type: "c5.large"
+# Controller
+aws_controller_ami_id: null
+aws_controller_instance_type: "c5.large"
 
-site_id_vsmart: 300
+site_id_controller: 300
 
-vsmart_instances: []
+controller_instances: []

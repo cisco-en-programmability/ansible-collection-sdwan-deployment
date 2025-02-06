@@ -234,4 +234,4 @@
     deployment_facts:
       manager_instances: "{{ deployment_facts.manager_instances + [instance] }}"
       validator_instances: "{{ deployment_facts.validator_instances }}"
-      vsmart_instances: "{{ deployment_facts.vsmart_instances }}"
+      controller_instances: "{{ deployment_facts.controller_instances }}"

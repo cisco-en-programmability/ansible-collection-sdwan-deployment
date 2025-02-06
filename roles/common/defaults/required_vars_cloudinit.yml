@@ -6,7 +6,7 @@
 required_variables: "{{ (required_variables_options['core']
   | combine(required_variables_options['validator'] if validator_instances | default({}) else {})
   | combine(required_variables_options['manager'] if manager_instances | default({}) else {})
-  | combine(required_variables_options['vsmart'] if vsmart_instances | default({}) else {})) }}"
+  | combine(required_variables_options['controller'] if controller_instances | default({}) else {})) }}"
 
 required_variables_options:
   core:
@@ -17,5 +17,5 @@ required_variables_options:
     validator_transport_private_ip: "{{ validator_transport_private_ip }}"
   manager:
     validator_transport_public_ip: "{{ validator_transport_public_ip }}"
-  vsmart:
+  controller:
     validator_transport_public_ip: "{{ validator_transport_public_ip }}"

@@ -13,4 +13,4 @@ required_variables:
   aws_subnets_config: "{{ aws_subnets_config }}"
   aws_manager_ami_id: "{{ aws_manager_ami_id }}"
   aws_validator_ami_id: "{{ aws_validator_ami_id }}"
-  aws_vsmart_ami_id: "{{ aws_vsmart_ami_id }}"
+  aws_controller_ami_id: "{{ aws_controller_ami_id }}"

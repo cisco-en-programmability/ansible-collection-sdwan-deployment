@@ -55,7 +55,7 @@ Current coverage:
 - [x] Deployment of:
   - [x] Manager
   - [x] Validator
-  - [x] vSmart
+  - [x] Controller
   - [x] cEdge
 - [x] Local installation via Ansible Galaxy
 - [x] Installation via git repository link
@@ -125,7 +125,7 @@ ansible-galaxy install -r requirements.yml
 
 ### Prepare your configuration
 
-*Note:* Current solution supports topology that consist of Manager, Validator, vSmart and C8000V edge device.
+*Note:* Current solution supports topology that consist of Manager, Validator, Controller and C8000V edge device.
 
 There are configuration files which has been initially filled with values:
 

@@ -52,7 +52,7 @@
     name: common
     tasks_from: aws_existing_instances.yml
   vars:
-    instances_marked_for_deployment: "{{ manager_instances + validator_instances + vsmart_instances }}"
+    instances_marked_for_deployment: "{{ manager_instances + validator_instances + controller_instances }}"
 
 # cloud-init Validator data requires information about private IP assigned to mgmt interface
 # cloud-init templates require information about Validator IP
@@ -64,7 +64,7 @@
     deployment_facts:
       validator_instances: []
       manager_instances: []
-      vsmart_instances: []
+      controller_instances: []
 
 - name: Deploy Validator - Create ec2 instances
   ansible.builtin.include_tasks: aws_validator_ec2_instance.yml
@@ -89,22 +89,22 @@
     loop_var: instance_item
   when: manager_instances is defined and (instance_item.hostname not in instances_info or not instances_info[instance_item.hostname])
 
-- name: Deploy vSmart - Create ec2 instances
-  ansible.builtin.include_tasks: aws_vsmart_ec2_instance.yml
+- name: Deploy Controller - Create ec2 instances
+  ansible.builtin.include_tasks: aws_controller_ec2_instance.yml
   vars:
     hostname: "{{ instance_item.hostname }}"
     system_ip: "{{ instance_item.system_ip }}"
     site_id: "{{ instance_item.site_id }}"
-  loop: "{{ vsmart_instances }}"
+  loop: "{{ controller_instances }}"
   loop_control:
     loop_var: instance_item
-  when: vsmart_instances is defined and (instance_item.hostname not in instances_info or not instances_info[instance_item.hostname])
+  when: controller_instances is defined and (instance_item.hostname not in instances_info or not instances_info[instance_item.hostname])
 
 - name: Extract deployment facts
   ansible.builtin.include_role:
     name: common
     tasks_from: generate_deployment_facts_controllers.yml
-  when: deployment_facts.validator_instances | length > 0 or deployment_facts.manager_instances | length > 0 or deployment_facts.vsmart_instances | length > 0
+  when: deployment_facts.validator_instances | length > 0 or deployment_facts.manager_instances | length > 0 or deployment_facts.controller_instances | length > 0
 
 - name: Check reachability of Manager instance with SSH probe
   ansible.builtin.include_role:

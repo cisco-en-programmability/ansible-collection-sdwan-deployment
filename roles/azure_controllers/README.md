@@ -1,12 +1,12 @@
 # Ansible Role: azure_controllers
 
-The `azure_controllers` role is designed to deploy SD-WAN controller instances, specifically Manager, Validator, and vSmart, on the Azure cloud platform. It ensures that instances are deployed according to specific configurations.
+The `azure_controllers` role is designed to deploy SD-WAN controller instances, specifically Manager, Validator, and Controller, on the Azure cloud platform. It ensures that instances are deployed according to specific configurations.
 
 NOTE: This role should be executed on localhost as it performs API requests to Azure via the Ansible Azure modules from the local machine.
 
 ## Role Description
 
-The `azure_controllers` role automates the deployment of Cisco SD-WAN controllers (Manager, Validator, and vSmart) in Azure. Key functionalities include:
+The `azure_controllers` role automates the deployment of Cisco SD-WAN controllers (Manager, Validator, and Controller) in Azure. Key functionalities include:
 
 - Verifying the active Azure user session.
 - Asserting that all required variables for Azure controller deployment are set.
@@ -15,7 +15,7 @@ The `azure_controllers` role automates the deployment of Cisco SD-WAN controller
 - Preparing a directory to store results and deployment data.
 - Checking for existing instances in the specified Azure Virtual Network (VN) to avoid conflicts.
 - Defining the deployment facts for Ansible to consume.
-- Creating Azure VMs for Validator, vSmart, and Manager instances.
+- Creating Azure VMs for Validator, Controller, and Manager instances.
 - Extracting deployment facts post-deployment.
 - Checking the reachability of the Manager instance via SSH to confirm deployment success.
 
@@ -44,14 +44,14 @@ The `azure_controllers` role automates the deployment of Cisco SD-WAN controller
 - `az_network_security_group`: Name of the Azure Network Security Group.
 - `az_allowed_subnets`: VPN subnets allowed to connect to Azure public IPs.
 - 'az_manager_image_vhd_source'
-- `az_manager_vm_size`, `az_validator_vm_size`, `az_vsmart_vm_size`: Azure VM sizes for Manager, Validator, and vSmart instances.
-- `site_id_manager`, `site_id_validator`, `site_id_vsmart`: Default site IDs for Manager, Validator, and vSmart instances.
-- `manager_instances`, `validator_instances`, `vsmart_instances`: Lists for instance configurations.
+- `az_manager_vm_size`, `az_validator_vm_size`, `az_controller_vm_size`: Azure VM sizes for Manager, Validator, and Controller instances.
+- `site_id_manager`, `site_id_validator`, `site_id_controller`: Default site IDs for Manager, Validator, and Controller instances.
+- `manager_instances`, `validator_instances`, `controller_instances`: Lists for instance configurations.
 
 ### Vars (`vars/main.yml`)
 
 - `results_dir`: Directory where deployment results are stored.
-- `userdata_manager_path`, `userdata_validator_path`, `userdata_vsmart_path`: Paths to templated userdata configurations for each controller type.
+- `userdata_manager_path`, `userdata_validator_path`, `userdata_controller_path`: Paths to templated userdata configurations for each controller type.
 
 ### Required Variables
 

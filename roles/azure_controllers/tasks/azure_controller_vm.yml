@@ -77,26 +77,26 @@
     loop_var: public_ip_state
     index_var: my_idx
     label: public_ip_state.state.name
-  register: vsmart_nics
+  register: controller_nics
 
-- name: "Set az_network_interfaces_vsmart fact with a list of interfaces for vSmart"
+- name: "Set az_network_interfaces_controller fact with a list of interfaces for Controller"
   ansible.builtin.set_fact:
-    az_network_interfaces_vsmart: "{{ vsmart_nics.results | map(attribute='state') | list }}"
-    az_public_ip_addresses_vsmart: "{{ public_ip_addresses.results | map(attribute='state') | list }}"
+    az_network_interfaces_controller: "{{ controller_nics.results | map(attribute='state') | list }}"
+    az_public_ip_addresses_controller: "{{ public_ip_addresses.results | map(attribute='state') | list }}"
 
-- name: "Filter az_network_interfaces_vsmart for instance creation. Set az_mgmt_nic and az_transport_nic facts"
+- name: "Filter az_network_interfaces_controller for instance creation. Set az_mgmt_nic and az_transport_nic facts"
   ansible.builtin.set_fact:
-    az_mgmt_nic: "{{ az_network_interfaces_vsmart | selectattr('tags.VPN', 'equalto', '512') | list | first }}"
-    az_transport_nic: "{{ az_network_interfaces_vsmart | selectattr('tags.VPN', 'equalto', '0') | list | first }}"
-    az_mgmt_public_ip: "{{ az_public_ip_addresses_vsmart | selectattr('tags.VPN', 'equalto', '512') | list | first }}"
-    az_transport_public_ip: "{{ az_public_ip_addresses_vsmart | selectattr('tags.VPN', 'equalto', '0') | list | first }}"
+    az_mgmt_nic: "{{ az_network_interfaces_controller | selectattr('tags.VPN', 'equalto', '512') | list | first }}"
+    az_transport_nic: "{{ az_network_interfaces_controller | selectattr('tags.VPN', 'equalto', '0') | list | first }}"
+    az_mgmt_public_ip: "{{ az_public_ip_addresses_controller | selectattr('tags.VPN', 'equalto', '512') | list | first }}"
+    az_transport_public_ip: "{{ az_public_ip_addresses_controller | selectattr('tags.VPN', 'equalto', '0') | list | first }}"
 
-- name: "Set vsmart facts"
+- name: "Set controller facts"
   ansible.builtin.set_fact:
-    vsmart_mgmt_private_ip: "{{ az_mgmt_nic.ip_configuration.private_ip_address }}"
-    vsmart_transport_private_ip: "{{ az_transport_nic.ip_configuration.private_ip_address }}"
-    vsmart_mgmt_public_ip: "{{ az_mgmt_public_ip.ip_address }}"
-    vsmart_transport_public_ip: "{{ az_transport_public_ip.ip_address }}"
+    controller_mgmt_private_ip: "{{ az_mgmt_nic.ip_configuration.private_ip_address }}"
+    controller_transport_private_ip: "{{ az_transport_nic.ip_configuration.private_ip_address }}"
+    controller_mgmt_public_ip: "{{ az_mgmt_public_ip.ip_address }}"
+    controller_transport_public_ip: "{{ az_transport_public_ip.ip_address }}"
 
 - name: "Set vpn0_default_gateway fact from VPN 0 subnet value"
   ansible.builtin.set_fact:
@@ -108,31 +108,31 @@
     loop_var: subnet_item
   when: subnet_item.VPN == 0
 
-- name: "Set path for bootstrap configuration: {{ userdata_vsmart_path }}-{{ hostname }}"
+- name: "Set path for bootstrap configuration: {{ userdata_controller_path }}-{{ hostname }}"
   ansible.builtin.set_fact:
-    generated_userdata_vsmart: "{{ userdata_vsmart_path }}-{{ hostname }}"
+    generated_userdata_controller: "{{ userdata_controller_path }}-{{ hostname }}"
   changed_when: true
 
-- name: "Template userdata file for vSmart: {{ hostname }}"
+- name: "Template userdata file for Controller: {{ hostname }}"
   ansible.builtin.template:
-    src: ./userdata_vsmart.j2
-    dest: "{{ generated_userdata_vsmart }}"
+    src: ./userdata_controller.j2
+    dest: "{{ generated_userdata_controller }}"
     mode: "0644"
 
-- name: "Create an image from a VHD for vSmart: {{ hostname }}-image"
+- name: "Create an image from a VHD for Controller: {{ hostname }}-image"
   azure.azcollection.azure_rm_image:
     resource_group: "{{ az_resource_group }}"
     name: "{{ hostname }}-image"
     location: "{{ az_location }}"
     os_type: "Linux"
     hyper_v_generation: "V1"
-    source: "{{ az_vsmart_image_vhd_source }}"
+    source: "{{ az_controller_image_vhd_source }}"
 
-- name: "Create vSmart VM: {{ hostname }}"
+- name: "Create Controller VM: {{ hostname }}"
   azure.azcollection.azure_rm_virtualmachine:
     resource_group: "{{ az_resource_group }}"
     name: "{{ hostname }}"
-    vm_size: "{{ az_vsmart_vm_size }}"
+    vm_size: "{{ az_controller_vm_size }}"
     admin_username: "{{ admin_username }}-tmp"  # Not included in cloud init
     admin_password: "{{ admin_password }}"
     managed_disk_type: "Premium_LRS"
@@ -154,23 +154,23 @@
       Name: "{{ hostname }}"
       Creator: "{{ az_tag_creator }}"
       Organization: "{{ organization_name }}"
-    custom_data: "{{ lookup('file', generated_userdata_vsmart) }}"
+    custom_data: "{{ lookup('file', generated_userdata_controller) }}"
 
-- name: "Store vSmart instance details for deployment_results"
+- name: "Store Controller instance details for deployment_results"
   ansible.builtin.set_fact:
     instance:
       hostname: "{{ hostname }}"
       system_ip: "{{ system_ip }}"
       admin_username: "{{ admin_username }}"
       admin_password: "{{ admin_password }}"
-      mgmt_public_ip: "{{ vsmart_mgmt_public_ip }}"
-      transport_public_ip: "{{ vsmart_transport_public_ip }}"
+      mgmt_public_ip: "{{ controller_mgmt_public_ip }}"
+      transport_public_ip: "{{ controller_transport_public_ip }}"
   changed_when: true
   notify: Show deployment_facts
 
-- name: "Update deployment facts - vSmart - that will be consumed by Manager-client in Ansible"
+- name: "Update deployment facts - Controller - that will be consumed by Manager-client in Ansible"
   ansible.builtin.set_fact:
     deployment_facts:
-      vsmart_instances: "{{ deployment_facts.vsmart_instances + [instance] }}"
+      controller_instances: "{{ deployment_facts.controller_instances + [instance] }}"
       manager_instances: "{{ deployment_facts.manager_instances }}"
       validator_instances: "{{ deployment_facts.validator_instances }}"

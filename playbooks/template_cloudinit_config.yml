@@ -47,13 +47,13 @@ validator_instances:
     vpn0_default_gateway: 10.0.2.1  # has to be set if cloud_provider == "azure"
 
 
-# vSmart
-site_id_vsmart: 300
+# Controller
+site_id_controller: 300
 
-vsmart_instances:
-  - hostname: terraformvsmart1 # "{{ resources_prefix }}-vSmart"
+controller_instances:
+  - hostname: terraformcontroller1 # "{{ resources_prefix }}-Controller"
     system_ip: 192.168.2.1
-    site_id: "{{ site_id_vsmart }}"
+    site_id: "{{ site_id_controller }}"
     vpn0_default_gateway: 10.0.2.1  # has to be set if cloud_provider == "azure"
 
 

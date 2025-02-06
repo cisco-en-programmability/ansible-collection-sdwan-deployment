@@ -18,7 +18,7 @@
       - instance_item.hostname | length > 0
       - instance_item.hostname | length <= 32
     fail_msg: "Verification for hostname failed, wrong hostname: {{ instance_item.hostname }}"
-  loop: "{{ manager_instances + validator_instances + vsmart_instances }}"
+  loop: "{{ manager_instances + validator_instances + controller_instances }}"
   loop_control:
     loop_var: instance_item
     label: "{{ instance_item.hostname }}"
@@ -38,14 +38,14 @@
     name: common
     tasks_from: az_existing_instances.yml
   vars:
-    instances_marked_for_deployment: "{{ manager_instances + validator_instances + vsmart_instances }}"
+    instances_marked_for_deployment: "{{ manager_instances + validator_instances + controller_instances }}"
 
 - name: Define deployment facts - that will be consumed by Manager-client in Ansible
   ansible.builtin.set_fact:
     deployment_facts:
       validator_instances: []
       manager_instances: []
-      vsmart_instances: []
+      controller_instances: []
 
 - name: Deploy Validator - Create Virtual Machines
   ansible.builtin.include_tasks: azure_validator_vm.yml
@@ -95,16 +95,16 @@
           {{ validator_transport_public_ip }}
 
 
-- name: "Deploy vSmart - Create Virtual Machines"
-  ansible.builtin.include_tasks: azure_vsmart_vm.yml
+- name: "Deploy Controller - Create Virtual Machines"
+  ansible.builtin.include_tasks: azure_controller_vm.yml
   vars:
     hostname: "{{ instance_item.hostname }}"
     system_ip: "{{ instance_item.system_ip }}"
     site_id: "{{ instance_item.site_id }}"
-  loop: "{{ vsmart_instances }}"
+  loop: "{{ controller_instances }}"
   loop_control:
     loop_var: instance_item
-  when: vsmart_instances is defined and (instance_item.hostname not in instances_info or not instances_info[instance_item.hostname])
+  when: controller_instances is defined and (instance_item.hostname not in instances_info or not instances_info[instance_item.hostname])
 
 - name: "Deploy Manager - Create Virtual Machines"
   ansible.builtin.include_tasks: azure_manager_vm.yml
@@ -122,7 +122,7 @@
   ansible.builtin.include_role:
     name: common
     tasks_from: generate_deployment_facts_controllers.yml
-  when: deployment_facts.validator_instances | length > 0 or deployment_facts.manager_instances | length > 0 or deployment_facts.vsmart_instances | length > 0
+  when: deployment_facts.validator_instances | length > 0 or deployment_facts.manager_instances | length > 0 or deployment_facts.controller_instances | length > 0
 
 - name: "Check reachability of Manager instance with SSH probe"
   ansible.builtin.include_role:

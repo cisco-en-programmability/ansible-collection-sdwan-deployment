@@ -10,14 +10,14 @@ The `template_cloudinit` role executes the following tasks:
 - Validates the cloud provider input.
 - Asserts the presence of all required variables for cloudinit generation.
 - Prepares a directory to store the generated cloudinit files.
-- Generates cloudinit templates for Validator, Manager, vSmart, and cEdge instances.
+- Generates cloudinit templates for Validator, Manager, Controller, and cEdge instances.
 - Displays the location and list of generated cloudinit files to the user.
 
 ## Requirements
 
 - The `cisco.sdwan_deployment` collection installed.
 - Ansible 2.16 or higher.
-- Jinja2 templates for cloud-init userdata scripts corresponding to each type of device (Validator, Manager, vSmart, cEdge).
+- Jinja2 templates for cloud-init userdata scripts corresponding to each type of device (Validator, Manager, Controller, cEdge).
 
 ## Dependencies
 
@@ -30,13 +30,13 @@ The `template_cloudinit` role executes the following tasks:
 Variables with default values that the user may need to override:
 
 - `results_dir`: Directory to store generated cloudinit files.
-- `userdata_manager_path`, `userdata_validator_path`, `userdata_vsmart_path`: Paths to templated userdata configurations for respective SD-WAN controllers.
+- `userdata_manager_path`, `userdata_validator_path`, `userdata_controller_path`: Paths to templated userdata configurations for respective SD-WAN controllers.
 - `admin_username`, `admin_password`: Default admin credentials used in userdata scripts.
 - `validator_port`, `default_validator_ip`: Default configurations for Validator.
 - `validator_transport_private_ip`, `validator_transport_public_ip`: IPs for Validator, to be defined by the user if static IPs are used.
 - `site_id_manager`, `manager_instances`: Site ID and list of Manager instances.
 - `site_id_validator`, `validator_instances`: Site ID and list of Validator instances.
-- `site_id_vsmart`, `vsmart_instances`: Site ID and list of vSmart instances.
+- `site_id_controller`, `controller_instances`: Site ID and list of Controller instances.
 - `edge_instances`: List of cEdge instances.
 
 ### Required Variables

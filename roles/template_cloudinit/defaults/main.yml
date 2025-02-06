@@ -12,7 +12,7 @@ results_dir: "{{ playbook_dir }}/results"
 # Path to templated userdata config
 userdata_manager_path: "{{ results_dir }}/.userdata_manager"
 userdata_validator_path: "{{ results_dir }}/.userdata_validator"
-userdata_vsmart_path: "{{ results_dir }}/.userdata_vsmart"
+userdata_controller_path: "{{ results_dir }}/.userdata_controller"
 
 
 ##########################################
@@ -40,9 +40,9 @@ site_id_validator: 200
 validator_instances: []
 
 
-# vSmart
-site_id_vsmart: 300
-vsmart_instances: []
+# Controller
+site_id_controller: 300
+controller_instances: []
 
 # cedge C8000K
 edge_instances: []
