@@ -40,14 +40,14 @@ manager_instances:
     site_id: "{{ site_id_manager }}"
 
 
-# vBond
-az_vbond_image_vhd_source: null
-site_id_vbond: 200
+# Validator
+az_validator_image_vhd_source: null
+site_id_validator: 200
 
-vbond_instances:
-  - hostname: "{{ az_resources_prefix }}-vBond"
+validator_instances:
+  - hostname: "{{ az_resources_prefix }}-Validator"
     system_ip: 192.168.3.1
-    site_id: "{{ site_id_vbond }}"
+    site_id: "{{ site_id_validator }}"
 
 
 # vSmart

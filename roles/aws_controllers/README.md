@@ -1,12 +1,12 @@
 # Ansible Role: aws_controllers
 
-The `aws_controllers` Ansible role is designed to deploy a Cisco SD-WAN controller topology on AWS cloud infrastructure. It follows the topology outlined in the official Cisco documentation and currently supports the deployment of Manager, vBond, and vSmart instances.
+The `aws_controllers` Ansible role is designed to deploy a Cisco SD-WAN controller topology on AWS cloud infrastructure. It follows the topology outlined in the official Cisco documentation and currently supports the deployment of Manager, Validator, and vSmart instances.
 
 NOTE: Role must be used on localhost - API requests to AWS via boto are done from local machine.
 
 ## Role description
 
-The `aws_controllers` role automates the deployment of Cisco SD-WAN controllers (Manager, vBond, and vSmart) in AWS. Key functionalities include:
+The `aws_controllers` role automates the deployment of Cisco SD-WAN controllers (Manager, Validator, and vSmart) in AWS. Key functionalities include:
 
 - Validating AWS dependencies and user sessions.
 - Discovering or using provided network infrastructure settings.
@@ -21,7 +21,7 @@ The `aws_controllers` role automates the deployment of Cisco SD-WAN controllers 
 - Ansible AWS modules (`amazon.aws` collection) installed.
 - Boto3 and Botocore Python libraries installed on the controlling machine to interact with AWS APIs.
 - AWS CLI configured with the appropriate permissions to create and manage AWS resources.
-- AWS EC2 AMIs for Manager, vBond, and vSmart instances must be available in your AWS account.
+- AWS EC2 AMIs for Manager, Validator, and vSmart instances must be available in your AWS account.
 
 ## Dependencies
 
@@ -36,14 +36,14 @@ The `aws_controllers` role automates the deployment of Cisco SD-WAN controllers 
 - `az_subnets`: A list of subnet definitions for the Azure Virtual Network.
 - `aws_vpc_name`, `aws_security_group_name`: Default naming convention for VPC and security group.
 - `aws_tag_creator`: Tag used to mark resources created in AWS.
-- `vbond_port`, `default_vbond_ip`: Default port and IP for vBond.
-- `site_id_manager`, `site_id_vbond`, `site_id_vsmart`: Default site IDs for each controller.
+- `validator_port`, `default_validator_ip`: Default port and IP for Validator.
+- `site_id_manager`, `site_id_validator`, `site_id_vsmart`: Default site IDs for each controller.
 
 ### Vars (`vars/main.yml`)
 
 - `results_dir`: Directory to store deployment results.
 - `aws_deployed_controllers_data`: File to store data of deployed controllers.
-- `userdata_manager_path`, `userdata_vbond_path`, `userdata_vsmart_path`: Paths to user data configurations for each controller type.
+- `userdata_manager_path`, `userdata_validator_path`, `userdata_vsmart_path`: Paths to user data configurations for each controller type.
 
 ### Required Variables
 

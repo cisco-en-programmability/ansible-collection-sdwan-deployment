@@ -54,7 +54,7 @@ Current coverage:
 - [x] Deployment on Azure
 - [x] Deployment of:
   - [x] Manager
-  - [x] vBond
+  - [x] Validator
   - [x] vSmart
   - [x] cEdge
 - [x] Local installation via Ansible Galaxy
@@ -125,7 +125,7 @@ ansible-galaxy install -r requirements.yml
 
 ### Prepare your configuration
 
-*Note:* Current solution supports topology that consist of Manager, vBond, vSmart and C8000V edge device.
+*Note:* Current solution supports topology that consist of Manager, Validator, vSmart and C8000V edge device.
 
 There are configuration files which has been initially filled with values:
 

@@ -24,7 +24,7 @@ The `aws_edges` role is an essential component of the `cisco.sdwan_deployment` c
 - Ansible AWS modules (`amazon.aws` collection) installed.
 - Boto3 and Botocore Python libraries installed on the controlling machine to interact with AWS APIs.
 - AWS CLI configured with the appropriate permissions to create and manage AWS resources.
-- AWS EC2 AMIs for Manager, vBond, and vSmart instances must be available in your AWS account.
+- AWS EC2 AMIs for Manager, Validator, and vSmart instances must be available in your AWS account.
 
 ## Dependencies
 
@@ -37,7 +37,7 @@ The `aws_edges` role is an essential component of the `cisco.sdwan_deployment` c
 
 - `aws_vpc_name`, `aws_security_group_name`: Defaults for naming VPC and security group resources.
 - `aws_tag_creator`: Tag for identifying the creator of AWS resources.
-- `vbond_port`, `default_vbond_ip`: Default vBond communication settings.
+- `validator_port`, `default_validator_ip`: Default Validator communication settings.
 - `edge_instances`: List of edge device instances to be deployed.
 
 ### Vars (`vars/main.yml`)

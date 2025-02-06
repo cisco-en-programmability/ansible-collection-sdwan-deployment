@@ -44,24 +44,24 @@
   ansible.builtin.set_fact:
     generated_files: []
 
-# cloud-init vBond data requires information about private IP assigned to mgmt interface
-# cloud-init templates require information about vBond IP
-# vbond_mgmt_private_ip & ec2_vbond_mgmt_public_ip
-# That are the reasons why vBond has to go up first (if we will use static IPs it can be changed)
+# cloud-init Validator data requires information about private IP assigned to mgmt interface
+# cloud-init templates require information about Validator IP
+# validator_mgmt_private_ip & ec2_validator_mgmt_public_ip
+# That are the reasons why Validator has to go up first (if we will use static IPs it can be changed)
 
-- name: "Generate cloudinit template for vBond instances"
+- name: "Generate cloudinit template for Validator instances"
   ansible.builtin.include_tasks: template_cloudinit.yml
   vars:
     hostname: "{{ instance_item.hostname }}"
     system_ip: "{{ instance_item.system_ip }}"
     site_id: "{{ instance_item.site_id }}"
     vpn0_default_gateway: "{{ instance_item.vpn0_default_gateway }}"
-    template_path: "./userdata_vbond.j2"
+    template_path: "./userdata_validator.j2"
     generated_cloudinit_path: "{{ cloudinit_path | default('') }}"
-  loop: "{{ vbond_instances }}"
+  loop: "{{ validator_instances }}"
   loop_control:
     loop_var: instance_item
-  when: vbond_instances is defined
+  when: validator_instances is defined
 
 - name: "Generate cloudinit template for Manager instances"
   ansible.builtin.include_tasks: template_cloudinit.yml
@@ -99,7 +99,7 @@
     site_id: "{{ instance_item.site_id }}"
     otp: "{{ instance_item.otp }}"
     uuid: "{{ instance_item.uuid }}"
-    vbond: "{{ instance_item.vbond }}"
+    validator: "{{ instance_item.validator }}"
     template_path: "./userdata_cedge.j2"
     generated_cloudinit_path: "{{ cloudinit_path | default('') }}"
   loop: "{{ edge_instances }}"

@@ -77,27 +77,27 @@
     loop_var: public_ip_state
     index_var: my_idx
     label: public_ip_state.state.name
-  register: vbond_nics
+  register: validator_nics
 
-- name: Set az_network_interfaces_vbond fact with a list of interfaces for vBond
+- name: Set az_network_interfaces_validator fact with a list of interfaces for Validator
   ansible.builtin.set_fact:
-    az_network_interfaces_vbond: "{{ vbond_nics.results | map(attribute='state') | list }}"
-    az_public_ip_addresses_vbond: "{{ public_ip_addresses.results | map(attribute='state') | list }}"
+    az_network_interfaces_validator: "{{ validator_nics.results | map(attribute='state') | list }}"
+    az_public_ip_addresses_validator: "{{ public_ip_addresses.results | map(attribute='state') | list }}"
 
-- name: Filter az_network_interfaces_vbond for instance creation. Set az_mgmt_nic and az_transport_nic facts
+- name: Filter az_network_interfaces_validator for instance creation. Set az_mgmt_nic and az_transport_nic facts
   ansible.builtin.set_fact:
-    az_mgmt_nic: "{{ az_network_interfaces_vbond | selectattr('tags.VPN', 'equalto', '512') | list | first }}"
-    az_transport_nic: "{{ az_network_interfaces_vbond | selectattr('tags.VPN', 'equalto', '0') | list | first }}"
-    az_mgmt_public_ip: "{{ az_public_ip_addresses_vbond | selectattr('tags.VPN', 'equalto', '512') | list | first }}"
-    az_transport_public_ip: "{{ az_public_ip_addresses_vbond | selectattr('tags.VPN', 'equalto', '0') | list | first }}"
+    az_mgmt_nic: "{{ az_network_interfaces_validator | selectattr('tags.VPN', 'equalto', '512') | list | first }}"
+    az_transport_nic: "{{ az_network_interfaces_validator | selectattr('tags.VPN', 'equalto', '0') | list | first }}"
+    az_mgmt_public_ip: "{{ az_public_ip_addresses_validator | selectattr('tags.VPN', 'equalto', '512') | list | first }}"
+    az_transport_public_ip: "{{ az_public_ip_addresses_validator | selectattr('tags.VPN', 'equalto', '0') | list | first }}"
 
-# vbond_mgmt_private_ip
-- name: "Set ip addresses vbond facts"
+# validator_mgmt_private_ip
+- name: "Set ip addresses validator facts"
   ansible.builtin.set_fact:
-    vbond_mgmt_private_ip: "{{ az_mgmt_nic.ip_configuration.private_ip_address }}"
-    vbond_transport_private_ip: "{{ az_transport_nic.ip_configuration.private_ip_address }}"
-    vbond_mgmt_public_ip: "{{ az_mgmt_public_ip.ip_address }}"
-    vbond_transport_public_ip: "{{ az_transport_public_ip.ip_address }}"
+    validator_mgmt_private_ip: "{{ az_mgmt_nic.ip_configuration.private_ip_address }}"
+    validator_transport_private_ip: "{{ az_transport_nic.ip_configuration.private_ip_address }}"
+    validator_mgmt_public_ip: "{{ az_mgmt_public_ip.ip_address }}"
+    validator_transport_public_ip: "{{ az_transport_public_ip.ip_address }}"
 
 - name: "Set vpn0_default_gateway fact from VPN 0 subnet value"
   ansible.builtin.set_fact:
@@ -109,15 +109,15 @@
     loop_var: subnet_item
   when: subnet_item.VPN == 0
 
-- name: "Set path for bootstrap configuration: {{ userdata_vbond_path }}-{{ hostname }}"
+- name: "Set path for bootstrap configuration: {{ userdata_validator_path }}-{{ hostname }}"
   ansible.builtin.set_fact:
-    generated_userdata_vbond: "{{ userdata_vbond_path }}-{{ hostname }}"
+    generated_userdata_validator: "{{ userdata_validator_path }}-{{ hostname }}"
   changed_when: true
 
-- name: "Template userdata file for vBond: {{ hostname }}"
+- name: "Template userdata file for Validator: {{ hostname }}"
   ansible.builtin.template:
-    src: ./userdata_vbond.j2  # ./bond.j2 ./userdata_vbond.j2
-    dest: "{{ generated_userdata_vbond }}"
+    src: ./userdata_validator.j2  # ./bond.j2 ./userdata_validator.j2
+    dest: "{{ generated_userdata_validator }}"
     mode: "0644"
 
 # # Note for image:
@@ -129,20 +129,20 @@
 # # For custom images, the name of the image. To narrow the search to a specific resource group, a dict with the keys name and resource_group.
 # # For Marketplace images, a dict with the keys publisher, offer, sku, and version.
 
-- name: "Create an image from a VHD for vBond: {{ hostname }}-image"
+- name: "Create an image from a VHD for Validator: {{ hostname }}-image"
   azure.azcollection.azure_rm_image:
     resource_group: "{{ az_resource_group }}"
     name: "{{ hostname }}-image"
     location: "{{ az_location }}"
     os_type: "Linux"
     hyper_v_generation: "V1"
-    source: "{{ az_vbond_image_vhd_source }}"
+    source: "{{ az_validator_image_vhd_source }}"
 
-- name: "Create vBond VM: {{ hostname }}"
+- name: "Create Validator VM: {{ hostname }}"
   azure.azcollection.azure_rm_virtualmachine:
     resource_group: "{{ az_resource_group }}"
     name: "{{ hostname }}"
-    vm_size: "{{ az_vbond_vm_size }}"
+    vm_size: "{{ az_validator_vm_size }}"
     ssh_password_enabled: true
     admin_username: "{{ admin_username }}-tmp"
     admin_password: "{{ admin_password }}"
@@ -167,23 +167,23 @@
       Name: "{{ hostname }}"
       Creator: "{{ az_tag_creator }}"
       Organization: "{{ organization_name }}"
-    custom_data: "{{ lookup('file', generated_userdata_vbond) }}"
+    custom_data: "{{ lookup('file', generated_userdata_validator) }}"
 
-- name: Store vBond instance details for deployment_results
+- name: Store Validator instance details for deployment_results
   ansible.builtin.set_fact:
     instance:
       hostname: "{{ hostname }}"
       system_ip: "{{ system_ip }}"
       admin_username: "{{ admin_username }}"
       admin_password: "{{ admin_password }}"
-      mgmt_public_ip: "{{ vbond_mgmt_public_ip }}"
-      transport_public_ip: "{{ vbond_transport_public_ip }}"
+      mgmt_public_ip: "{{ validator_mgmt_public_ip }}"
+      transport_public_ip: "{{ validator_transport_public_ip }}"
   changed_when: true
   notify: Show deployment_facts
 
-- name: Update deployment facts - vBond - that will be consumed by Manager-client in Ansible
+- name: Update deployment facts - Validator - that will be consumed by Manager-client in Ansible
   ansible.builtin.set_fact:
     deployment_facts:
-      vbond_instances: "{{ deployment_facts.vbond_instances + [instance] }}"
+      validator_instances: "{{ deployment_facts.validator_instances + [instance] }}"
       manager_instances: "{{ deployment_facts.manager_instances }}"
       vsmart_instances: "{{ deployment_facts.vsmart_instances }}"

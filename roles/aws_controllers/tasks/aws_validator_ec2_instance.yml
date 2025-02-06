@@ -3,7 +3,7 @@
 
 ---
 
-# For vBond
+# For Validator
 #
 # 2 aws_network_interface
 # 2 aws_network_interface_attachment
@@ -17,7 +17,7 @@
     aws_mgmt_subnet: "{{ aws_subnets_config | selectattr('tags.VPN', 'equalto', '512') | list | first }}"
     aws_transport_subnet: "{{ aws_subnets_config | selectattr('tags.VPN', 'equalto', '0') | list | first }}"
 
-- name: Create network interfaces for vBond
+- name: Create network interfaces for Validator
   amazon.aws.ec2_eni:
     subnet_id: "{{ subnet_item.id }}"
     description: Network interface for SD-WAN Controller
@@ -28,15 +28,15 @@
       Creator: "{{ aws_tag_creator }}"
       Machine: "{{ hostname }}"
       VPN: "{{ subnet_item.tags.VPN }}"
-  register: network_interfaces_vbond
+  register: network_interfaces_validator
   loop: "{{ [aws_mgmt_subnet, aws_transport_subnet] }}"
   loop_control:
     loop_var: subnet_item
     label: "nic-{{ subnet_item.tags.Name }}"
 
-- name: Set aws_network_interfaces fact with a list of interfaces for vBond
+- name: Set aws_network_interfaces fact with a list of interfaces for Validator
   ansible.builtin.set_fact:
-    aws_network_interfaces: "{{ network_interfaces_vbond.results | map(attribute='interface') | list }}"
+    aws_network_interfaces: "{{ network_interfaces_validator.results | map(attribute='interface') | list }}"
 
 - name: Filter aws_network_interfaces for instance creation. Set aws_mgmt_nic and aws_transport_nic facts
   ansible.builtin.set_fact:
@@ -61,41 +61,41 @@
   loop_control:
     loop_var: interface_item
     label: "eip-for-{{ interface_item.tags.Name }}"
-  register: eip_vbond
+  register: eip_validator
   retries: 3
   delay: 3
-  until: eip_vbond is succeeded
+  until: eip_validator is succeeded
 
-# vbond_mgmt_private_ip
-- name: Set vbond_mgmt_private_ip fact
+# validator_mgmt_private_ip
+- name: Set validator_mgmt_private_ip fact
   ansible.builtin.set_fact:
-    vbond_mgmt_private_ip: "{{ aws_mgmt_nic.private_ip_address }}"
-    vbond_transport_private_ip: "{{ aws_transport_nic.private_ip_address }}"
-    vbond_mgmt_public_ip: "{{ eip_vbond.results[0].public_ip }}"
-    vbond_transport_public_ip: "{{ eip_vbond.results[1].public_ip }}"
+    validator_mgmt_private_ip: "{{ aws_mgmt_nic.private_ip_address }}"
+    validator_transport_private_ip: "{{ aws_transport_nic.private_ip_address }}"
+    validator_mgmt_public_ip: "{{ eip_validator.results[0].public_ip }}"
+    validator_transport_public_ip: "{{ eip_validator.results[1].public_ip }}"
 
 
 # template cloud init with proper ip assigned to EiP
 # cloud-init
 - name: Set path for bootstrap configuration
   ansible.builtin.set_fact:
-    generated_userdata_vbond: "{{ userdata_vbond_path }}-{{ hostname }}"
+    generated_userdata_validator: "{{ userdata_validator_path }}-{{ hostname }}"
   changed_when: true
 
-- name: Template userdata file for vBond
+- name: Template userdata file for Validator
   ansible.builtin.template:
-    src: ./userdata_vbond.j2
-    dest: "{{ generated_userdata_vbond }}"
+    src: ./userdata_validator.j2
+    dest: "{{ generated_userdata_validator }}"
     mode: "0644"
 
 
-# vBond
-- name: Launch vBond
+# Validator
+- name: Launch Validator
   amazon.aws.ec2_instance:
     count: 1
-    instance_type: "{{ aws_vbond_instance_type }}"
+    instance_type: "{{ aws_validator_instance_type }}"
     image:
-      id: "{{ aws_vbond_ami_id }}"
+      id: "{{ aws_validator_ami_id }}"
     state: present
     vpc_subnet_id: "{{ aws_mgmt_subnet.id }}"
     region: "{{ aws_region }}"
@@ -113,34 +113,34 @@
     tags:
       Name: "{{ hostname }}"
       Creator: "{{ aws_tag_creator }}"
-    user_data: "{{ lookup('file', generated_userdata_vbond) }}"
+    user_data: "{{ lookup('file', generated_userdata_validator) }}"
     volumes:
       - device_name: /dev/xvda
         ebs:
           volume_size: 23
           delete_on_termination: true
-  register: ec2_vbond
+  register: ec2_validator
 
-- name: Store vBond instance details for deployment_results
+- name: Store Validator instance details for deployment_results
   ansible.builtin.set_fact:
     instance:
       hostname: "{{ hostname }}"
       system_ip: "{{ system_ip }}"
       admin_username: "{{ admin_username }}"
       admin_password: "{{ admin_password }}"
-      mgmt_public_ip: "{{ eip_vbond.results[0].public_ip }}"
-      transport_public_ip: "{{ eip_vbond.results[1].public_ip }}"
+      mgmt_public_ip: "{{ eip_validator.results[0].public_ip }}"
+      transport_public_ip: "{{ eip_validator.results[1].public_ip }}"
   changed_when: true
   notify: Show deployment_facts
-  register: _vbond_facts
+  register: _validator_facts
   retries: 3
   delay: 5
-  until: _vbond_facts is succeeded
+  until: _validator_facts is succeeded
 
-- name: Update deployment facts - vBond - that will be consumed by Manager-client in Ansible
+- name: Update deployment facts - Validator - that will be consumed by Manager-client in Ansible
   ansible.builtin.set_fact:
     deployment_facts:
-      vbond_instances: "{{ deployment_facts.vbond_instances + [instance] }}"
+      validator_instances: "{{ deployment_facts.validator_instances + [instance] }}"
       manager_instances: "{{ deployment_facts.manager_instances }}"
       vsmart_instances: "{{ deployment_facts.vsmart_instances }}"
 
@@ -151,10 +151,10 @@
     mode: "0644"
     insertafter: EOF
     dest: "{{ aws_deployed_controllers_data }}"
-    marker: "\n--------------    ec2 vBond   --------------\n"
-    content: "{{ ec2_vbond | to_nice_yaml }}"
+    marker: "\n--------------    ec2 Validator   --------------\n"
+    content: "{{ ec2_validator | to_nice_yaml }}"
 
-- name: Allow traffic outside VPC for vBond IP addresses
+- name: Allow traffic outside VPC for Validator IP addresses
   amazon.aws.ec2_security_group:
     name: "{{ aws_security_group_config.group_name }}"
     description: "Security Group for SD-WAN instances"
@@ -165,10 +165,10 @@
     purge_rules_egress: false
     rules:
       - proto: all
-        cidr_ip: "{{ eip_vbond.results[0].public_ip }}/32"
+        cidr_ip: "{{ eip_validator.results[0].public_ip }}/32"
         rule_desc: "{{ hostname }} - mgmt (VPN 512)"
       - proto: all
-        cidr_ip: "{{ eip_vbond.results[1].public_ip }}/32"
+        cidr_ip: "{{ eip_validator.results[1].public_ip }}/32"
         rule_desc: "{{ hostname }} - transport (VPN 0)"
     rules_egress: []
   register: allow_traffic

@@ -11,7 +11,7 @@
   ansible.builtin.set_fact:
     _additional:
       organization_name: "{{ organization_name }}"
-      vbond_transport_public_ip: "{{ vbond_transport_public_ip | default('null', true) }}"
+      validator_transport_public_ip: "{{ validator_transport_public_ip | default('null', true) }}"
 
 - name: Update deployment facts with additional variables
   ansible.builtin.set_fact:

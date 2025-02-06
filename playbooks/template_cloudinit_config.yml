@@ -19,9 +19,9 @@ cloud_provider: null  # can be either aws or azure
 # Cloud-init general configurations
 admin_username: admin
 admin_password: dummypassword  # pragma: allowlist secret
-vbond_port: 12346
-vbond_transport_private_ip: X.X.X.X
-vbond_transport_public_ip: Y.Y.Y.Y
+validator_port: 12346
+validator_transport_private_ip: X.X.X.X
+validator_transport_public_ip: Y.Y.Y.Y
 
 
 ###############################
@@ -37,13 +37,13 @@ manager_instances:
     site_id: "{{ site_id_manager }}"
     vpn0_default_gateway: 10.0.2.1  # has to be set if cloud_provider == "azure"
 
-# vBond
-site_id_vbond: 200
+# Validator
+site_id_validator: 200
 
-vbond_instances:
-  - hostname: terraformvbond1 # "{{ resources_prefix }}-vBond"
+validator_instances:
+  - hostname: terraformvalidator1 # "{{ resources_prefix }}-Validator"
     system_ip: 192.168.3.1
-    site_id: "{{ site_id_vbond }}"
+    site_id: "{{ site_id_validator }}"
     vpn0_default_gateway: 10.0.2.1  # has to be set if cloud_provider == "azure"
 
 
@@ -68,4 +68,4 @@ edge_instances:
     site_id: 1002
     system_ip: 192.168.102.1
     uuid: XXXX-XXXX-XXXX
-    vbond: 1.1.1.1
+    validator: 1.1.1.1

@@ -27,8 +27,8 @@ aws_resources_prefix: "{{ organization_name }}"
 # Cloud-init general configurations
 admin_username: admin
 admin_password: null  # pragma: allowlist secret
-vbond_port: 12346
-default_vbond_ip: 192.168.1.199  # default ips from official Cisco guides
+validator_port: 12346
+default_validator_ip: 192.168.1.199  # default ips from official Cisco guides
 # vpn0_interface_color: default
 
 
@@ -45,13 +45,13 @@ site_id_manager: 100
 
 manager_instances: []
 
-# vBond
-aws_vbond_ami_id: null
-aws_vbond_instance_type: "c5.large"
+# Validator
+aws_validator_ami_id: null
+aws_validator_instance_type: "c5.large"
 
-site_id_vbond: 200
+site_id_validator: 200
 
-vbond_instances: []
+validator_instances: []
 
 
 # vSmart

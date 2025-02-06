@@ -10,5 +10,5 @@ results_dir: "{{ playbook_dir }}/results"
 
 # Path to templated userdata config
 userdata_manager_path: "{{ results_dir }}/.userdata_manager"
-userdata_vbond_path: "{{ results_dir }}/.userdata_vbond"
+userdata_validator_path: "{{ results_dir }}/.userdata_validator"
 userdata_vsmart_path: "{{ results_dir }}/.userdata_vsmart"

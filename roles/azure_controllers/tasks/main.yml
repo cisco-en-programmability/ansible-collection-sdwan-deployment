@@ -18,7 +18,7 @@
       - instance_item.hostname | length > 0
       - instance_item.hostname | length <= 32
     fail_msg: "Verification for hostname failed, wrong hostname: {{ instance_item.hostname }}"
-  loop: "{{ manager_instances + vbond_instances + vsmart_instances }}"
+  loop: "{{ manager_instances + validator_instances + vsmart_instances }}"
   loop_control:
     loop_var: instance_item
     label: "{{ instance_item.hostname }}"
@@ -38,61 +38,61 @@
     name: common
     tasks_from: az_existing_instances.yml
   vars:
-    instances_marked_for_deployment: "{{ manager_instances + vbond_instances + vsmart_instances }}"
+    instances_marked_for_deployment: "{{ manager_instances + validator_instances + vsmart_instances }}"
 
 - name: Define deployment facts - that will be consumed by Manager-client in Ansible
   ansible.builtin.set_fact:
     deployment_facts:
-      vbond_instances: []
+      validator_instances: []
       manager_instances: []
       vsmart_instances: []
 
-- name: Deploy vBond - Create Virtual Machines
-  ansible.builtin.include_tasks: azure_vbond_vm.yml
+- name: Deploy Validator - Create Virtual Machines
+  ansible.builtin.include_tasks: azure_validator_vm.yml
   vars:
     hostname: "{{ instance_item.hostname }}"
     system_ip: "{{ instance_item.system_ip }}"
     site_id: "{{ instance_item.site_id }}"
-  loop: "{{ vbond_instances }}"
+  loop: "{{ validator_instances }}"
   loop_control:
     loop_var: instance_item
-  when: vbond_instances is defined and (instance_item.hostname not in instances_info or not instances_info[instance_item.hostname])
+  when: validator_instances is defined and (instance_item.hostname not in instances_info or not instances_info[instance_item.hostname])
 
-- name: "Check if vbond_transport_public_ip is defined"
+- name: "Check if validator_transport_public_ip is defined"
   ansible.builtin.pause:
     prompt: |
 
-      Current run of playbook will not deploy or redeploy vBond machine.
-      In order to correctly build overlay network, vbond transport public ip is required.
-      Please provide value for vbond_transport_public_ip or leave empty for default one (192.168.1.199)
+      Current run of playbook will not deploy or redeploy Validator machine.
+      In order to correctly build overlay network, validator transport public ip is required.
+      Please provide value for validator_transport_public_ip or leave empty for default one (192.168.1.199)
 
   when:
-    - vbond_transport_public_ip is not defined
-    - vbond_instances is defined
-    - (vbond_instances | first).hostname in instances_info or instances_info[(vbond_instances | first).hostname]
+    - validator_transport_public_ip is not defined
+    - validator_instances is defined
+    - (validator_instances | first).hostname in instances_info or instances_info[(validator_instances | first).hostname]
   register: user_response
 
-- name: "Verify user input for vbond_transport_public_ip if provided"
+- name: "Verify user input for validator_transport_public_ip if provided"
   when:
     - user_response is defined
     - user_response.user_input is defined
   block:
-    - name: "Set vbond_transport_public_ip variable from user input if provided"
+    - name: "Set validator_transport_public_ip variable from user input if provided"
       ansible.builtin.set_fact:
-        vbond_transport_public_ip: "{{ user_response.user_input if user_response.user_input != '' else default_vbond_ip }}"
+        validator_transport_public_ip: "{{ user_response.user_input if user_response.user_input != '' else default_validator_ip }}"
 
-    - name: "Validate vbond_transport_public_ip input"
+    - name: "Validate validator_transport_public_ip input"
       ansible.builtin.fail:
-        msg: "Invalid input '{{ vbond_transport_public_ip }}'. You must enter valid ip address or leave empty for default."
+        msg: "Invalid input '{{ validator_transport_public_ip }}'. You must enter valid ip address or leave empty for default."
       when:
-        - not (vbond_transport_public_ip is ansible.utils.ipv4)
+        - not (validator_transport_public_ip is ansible.utils.ipv4)
 
-    - name: "Show provided value for vbond_transport_public_ip"
+    - name: "Show provided value for validator_transport_public_ip"
       ansible.builtin.debug:
         msg: |
-          User provided value for vbond_transport_public_ip:
+          User provided value for validator_transport_public_ip:
 
-          {{ vbond_transport_public_ip }}
+          {{ validator_transport_public_ip }}
 
 
 - name: "Deploy vSmart - Create Virtual Machines"
@@ -122,7 +122,7 @@
   ansible.builtin.include_role:
     name: common
     tasks_from: generate_deployment_facts_controllers.yml
-  when: deployment_facts.vbond_instances | length > 0 or deployment_facts.manager_instances | length > 0 or deployment_facts.vsmart_instances | length > 0
+  when: deployment_facts.validator_instances | length > 0 or deployment_facts.manager_instances | length > 0 or deployment_facts.vsmart_instances | length > 0
 
 - name: "Check reachability of Manager instance with SSH probe"
   ansible.builtin.include_role:

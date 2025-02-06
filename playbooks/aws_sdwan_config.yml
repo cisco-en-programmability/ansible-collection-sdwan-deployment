@@ -74,9 +74,9 @@ aws_nacl_name: "{{ aws_resources_prefix }}-nacl"
 # Cloud-init general configurations
 admin_username: admin
 admin_password: null  # pragma: allowlist secret
-vbond_port: 12346
-# vbond_transport_private_ip: null   # note that default: 192.168.1.199
-# vbond_transport_public_ip: null    # note that default: 192.168.1.199
+validator_port: 12346
+# validator_transport_private_ip: null   # note that default: 192.168.1.199
+# validator_transport_public_ip: null    # note that default: 192.168.1.199
 
 
 
@@ -96,16 +96,16 @@ manager_instances:
     site_id: "{{ site_id_manager }}"
 
 
-# vBond
-aws_vbond_ami_id: null
-aws_vbond_instance_type: "c5.large"
+# Validator
+aws_validator_ami_id: null
+aws_validator_instance_type: "c5.large"
 
-site_id_vbond: 200
+site_id_validator: 200
 
-vbond_instances:
-  - hostname: "{{ aws_resources_prefix }}-vBond"
+validator_instances:
+  - hostname: "{{ aws_resources_prefix }}-Validator"
     system_ip: 192.168.3.1
-    site_id: "{{ site_id_vbond }}"
+    site_id: "{{ site_id_validator }}"
 
 
 # vSmart

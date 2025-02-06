@@ -60,8 +60,8 @@ az_allowed_subnets: null
 # Cloud-init general configurations
 admin_username: admin
 admin_password: null  # pragma: allowlist secret
-vbond_port: 12346
-default_vbond_ip: 192.168.1.199
+validator_port: 12346
+default_validator_ip: 192.168.1.199
 # vpn0_interface_color: default
 
 
@@ -81,15 +81,15 @@ manager_instances: []
   #   site_id: "{{ site_id_manager }}"
 
 
-# vBond
-az_vbond_vm_size: "Standard_F4s_v2"
-site_id_vbond: 200
-az_vbond_image_vhd_source: null
+# Validator
+az_validator_vm_size: "Standard_F4s_v2"
+site_id_validator: 200
+az_validator_image_vhd_source: null
 
-vbond_instances: []
-  # - hostname: "{{ az_resources_prefix }}-vBond"
+validator_instances: []
+  # - hostname: "{{ az_resources_prefix }}-Validator"
   #   system_ip: 192.168.3.1
-  #   site_id: "{{ site_id_vbond }}"
+  #   site_id: "{{ site_id_validator }}"
 
 
 # vSmart

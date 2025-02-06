@@ -11,7 +11,7 @@ results_dir: "{{ playbook_dir }}/results"
 
 # Path to templated userdata config
 userdata_manager_path: "{{ results_dir }}/.userdata_manager"
-userdata_vbond_path: "{{ results_dir }}/.userdata_vbond"
+userdata_validator_path: "{{ results_dir }}/.userdata_validator"
 userdata_vsmart_path: "{{ results_dir }}/.userdata_vsmart"
 
 
@@ -22,10 +22,10 @@ userdata_vsmart_path: "{{ results_dir }}/.userdata_vsmart"
 # Cloud-init general configurations
 admin_username: admin
 admin_password: example_password  # pragma: allowlist secret
-vbond_port: 12346
-default_vbond_ip: 192.168.1.199  # default ips from official Cisco guides
-vbond_transport_private_ip: null
-vbond_transport_public_ip: null
+validator_port: 12346
+default_validator_ip: 192.168.1.199  # default ips from official Cisco guides
+validator_transport_private_ip: null
+validator_transport_public_ip: null
 
 ###############################
 #          Controllers        #
@@ -35,9 +35,9 @@ vbond_transport_public_ip: null
 site_id_manager: 100
 manager_instances: []
 
-# vBond
-site_id_vbond: 200
-vbond_instances: []
+# Validator
+site_id_validator: 200
+validator_instances: []
 
 
 # vSmart

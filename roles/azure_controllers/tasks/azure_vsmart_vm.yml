@@ -173,4 +173,4 @@
     deployment_facts:
       vsmart_instances: "{{ deployment_facts.vsmart_instances + [instance] }}"
       manager_instances: "{{ deployment_facts.manager_instances }}"
-      vbond_instances: "{{ deployment_facts.vbond_instances }}"
+      validator_instances: "{{ deployment_facts.validator_instances }}"

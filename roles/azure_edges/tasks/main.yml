@@ -51,7 +51,7 @@
     hostname: "{{ instance_item.hostname | replace('_', '-') }}"
     uuid: "{{ instance_item.uuid }}"
     otp: "{{ instance_item.otp }}"
-    vbond: "{{ instance_item.vbond }}"
+    validator: "{{ instance_item.validator }}"
     system_ip: "{{ instance_item.system_ip }}"
     site_id: "{{ instance_item.site_id }}"
   loop: "{{ edge_instances }}"
