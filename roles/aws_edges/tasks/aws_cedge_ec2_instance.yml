@@ -38,7 +38,7 @@
 
 - name: Set aws_network_interfaces fact with a list of interfaces for cEdge device
   ansible.builtin.set_fact:
-    aws_network_interfaces: "{{ network_interfaces_cedge.results | map(attribute='interface') | list }}"
+    aws_network_interfaces: "{{ network_interfaces_cedge.results | selectattr('interface', 'defined') | map(attribute='interface') | list }}"
 
 - name: Filter aws_network_interfaces for instance creation. Set aws_mgmt_nic and aws_transport_nic facts
   ansible.builtin.set_fact:

@@ -21,6 +21,7 @@ exclude_paths:
   - playbooks/template_cloudinit_config.yml
   - playbooks/specific_edges_to_teardown.yml
   - roles/aws_teardown/tasks/main.yml
+  - .ansible
 # parseable: true
 # quiet: true
 # strict: true

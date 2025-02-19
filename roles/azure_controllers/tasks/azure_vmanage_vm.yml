@@ -107,6 +107,36 @@
     - cluster_subnet is defined
     - cluster_subnet != ""
 
+- name: "Get info about NSG: {{ az_network_security_group }}"
+  azure.azcollection.azure_rm_securitygroup_info:
+    resource_group: "{{ az_resource_group }}"
+    name: "{{ az_network_security_group }}"
+  register: az_res_gr
+  when:
+    - cluster_subnet is defined
+    - cluster_subnet != ""
+
+- name: "Extend Network Security Group for cluster deployment. NSG: {{ az_network_security_group }}"
+  azure.azcollection.azure_rm_securitygroup:
+    resource_group: "{{ az_resource_group }}"
+    name: "{{ az_network_security_group }}"
+    rules:
+      - name: "{{ cluster_vmanage_nic.state.name }}"
+        protocol: "*"
+        destination_port_range: "*"
+        source_port_range: "*"
+        source_address_prefix: "{{ cluster_vmanage_nic.state.ip_configuration.private_ip_address }}"
+        access: Allow
+        priority: "{{ 2500 + ((az_res_gr.securitygroups | first).rules | length) + 1 }}"
+        direction: Inbound
+    tags:
+      Name: "{{ az_network_security_group }}"
+      Creator: "{{ az_tag_creator }}"
+      Organization: "{{ organization_name }}"
+  when:
+    - cluster_subnet is defined
+    - cluster_subnet != ""
+
 - name: Set az_network_interfaces_vmanage fact with a list of interfaces for vmanage
   ansible.builtin.set_fact:
     az_network_interfaces_vmanage: "{{ (vmanage_nics.results + [cluster_vmanage_nic]) | selectattr('state', 'defined') | map(attribute='state') | list }}"
