@@ -10,9 +10,9 @@ organization_name: null  # has to be set by user
 results_dir: "{{ playbook_dir }}/results"
 
 # Path to templated userdata config
-userdata_vmanage_path: "{{ results_dir }}/.userdata_vmanage"
-userdata_vbond_path: "{{ results_dir }}/.userdata_vbond"
-userdata_vsmart_path: "{{ results_dir }}/.userdata_vsmart"
+userdata_manager_path: "{{ results_dir }}/.userdata_manager"
+userdata_validator_path: "{{ results_dir }}/.userdata_validator"
+userdata_controller_path: "{{ results_dir }}/.userdata_controller"
 
 
 ##########################################
@@ -22,27 +22,27 @@ userdata_vsmart_path: "{{ results_dir }}/.userdata_vsmart"
 # Cloud-init general configurations
 admin_username: admin
 admin_password: example_password  # pragma: allowlist secret
-vbond_port: 12346
-default_vbond_ip: 192.168.1.199  # default ips from official Cisco guides
-vbond_transport_private_ip: null
-vbond_transport_public_ip: null
+validator_port: 12346
+default_validator_ip: 192.168.1.199  # default ips from official Cisco guides
+validator_transport_private_ip: null
+validator_transport_public_ip: null
 
 ###############################
 #          Controllers        #
 ###############################
 
-# vManage
-site_id_vmanage: 100
-vmanage_instances: []
+# Manager
+site_id_manager: 100
+manager_instances: []
 
-# vBond
-site_id_vbond: 200
-vbond_instances: []
+# Validator
+site_id_validator: 200
+validator_instances: []
 
 
-# vSmart
-site_id_vsmart: 300
-vsmart_instances: []
+# Controller
+site_id_controller: 300
+controller_instances: []
 
 # cedge C8000K
 edge_instances: []

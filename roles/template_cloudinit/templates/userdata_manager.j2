@@ -15,9 +15,42 @@ chpasswd:
   list:
   - root:root
   - {{ admin_username }}:{{ admin_password }}
+disk_setup:
+{% if cloud_provider == 'aws' %}
+  /dev/nvme1n1:
+{% endif %}
+{% if cloud_provider == 'azure' %}
+  /dev/disk/azure/scsi1/lun10:
+{% endif %}
+    table_type: mbr
+    layout: false
+    overwrite: false
+fs_setup:
+{% if cloud_provider == 'aws' %}
+- device: /dev/nvme1n1
+{% endif %}
+{% if cloud_provider == 'azure' %}
+- device: /dev/disk/azure/scsi1/lun10
+{% endif %}
+  label: data
+  partition: none
+  filesystem: ext4
+  overwrite: false
+mounts:
+{% if cloud_provider == 'aws' %}
+- [ /dev/nvme1n1, /opt/data ]
+{% endif %}
+{% if cloud_provider == 'azure' %}
+- [ /dev/disk/azure/scsi1/lun10, /opt/data ]
+{% endif %}
+
 write_files:
+- path: /opt/web-app/etc/persona
+  owner: vmanage:vmanage-admin
+  permissions: '0644'
+  content: '{"persona":"COMPUTE_AND_DATA"}'
 - path: /etc/default/personality
-  content: "vsmart\n"
+  content: "vmanage\n"
 - path: /etc/default/inited
   content: "1\n"
 - path: /etc/confd/init/zcloud.xml
@@ -25,19 +58,23 @@ write_files:
     <config xmlns="http://tail-f.com/ns/config/1.0">
       <system xmlns="http://viptela.com/system">
         <host-name>{{ hostname }}</host-name>
-        <personality>vsmart</personality>
-        <device-model>vsmart</device-model>
+        <personality>vmanage</personality>
+        <device-model>vmanage</device-model>
         <system-ip>{{ system_ip }}</system-ip>
         <organization-name>{{ organization_name }}</organization-name>
         <sp-organization-name>{{ organization_name }}</sp-organization-name>
-        <site-id>{{ site_id }}</site-id>
+        <site-id>{{ site_id_manager }}</site-id>
         <vbond>
-          <remote>{{ vbond_transport_public_ip | default(default_vbond_ip) }}</remote>
+          <remote>{{ validator_transport_public_ip | default(default_validator_ip) }}</remote>
         </vbond>
         <aaa>
+          <auth-order>local</auth-order>
+          <auth-order>radius</auth-order>
+          <auth-order>tacacs</auth-order>
           <user>
-            <name>{{ admin_username }}</name>
+            <name>admin</name>
             <password>{{ admin_password }}</password>
+            <group>netadmin</group>
           </user>
         </aaa>
       </system>
@@ -50,15 +87,14 @@ write_files:
                 <dhcp-client>true</dhcp-client>
               </ip>
               <tunnel-interface>
-                <encapsulation>
-                  <encap>ipsec</encap>
-                </encapsulation>
-                <color>
-                  <value>default</value>
-                </color>
                 <allow-service>
+                  <dhcp>true</dhcp>
+                  <dns>true</dns>
+                  <ntp>true</ntp>
+                  <icmp>true</icmp>
                   <sshd>true</sshd>
                   <netconf>true</netconf>
+                  <https>true</https>
                 </allow-service>
               </tunnel-interface>
               <shutdown>false</shutdown>

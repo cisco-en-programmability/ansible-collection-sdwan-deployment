@@ -32,7 +32,7 @@ write_files:
         <sp-organization-name>{{ organization_name }}</sp-organization-name>
         <site-id>{{ site_id }}</site-id>
         <vbond>
-          <remote>{{ vbond_transport_public_ip | default(default_vbond_ip) }}</remote>
+          <remote>{{ validator_transport_public_ip | default(default_validator_ip) }}</remote>
         </vbond>
         <aaa>
           <user>
@@ -63,6 +63,16 @@ write_files:
               </tunnel-interface>
               <shutdown>false</shutdown>
             </interface>
+{% if cloud_provider == 'azure' %}
+          <ip>
+            <route>
+              <prefix>0.0.0.0/0</prefix>
+              <next-hop>
+                <address>{{ vpn0_default_gateway }}</address>
+              </next-hop>
+            </route>
+          </ip>
+{% endif %}
         </vpn-instance>
         <vpn-instance>
           <vpn-id>512</vpn-id>

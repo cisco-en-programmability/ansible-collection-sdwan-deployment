@@ -31,7 +31,7 @@ az_subnets: |
     cidr: "10.0.2.0/24"
     VPN: 0
     type: transport
-  {% if vmanage_instances is defined and vmanage_instances | length > 2 %}
+  {% if manager_instances is defined and manager_instances | length > 2 %}
   - name: "{{ az_resources_prefix }}-cluster-subnet-0"
     cidr: "10.0.3.0/24"
     VPN: 0
@@ -60,8 +60,8 @@ az_allowed_subnets: null
 # Cloud-init general configurations
 admin_username: admin
 admin_password: null  # pragma: allowlist secret
-vbond_port: 12346
-default_vbond_ip: 192.168.1.199
+validator_port: 12346
+default_validator_ip: 192.168.1.199
 # vpn0_interface_color: default
 
 
@@ -69,35 +69,35 @@ default_vbond_ip: 192.168.1.199
 #          Controllers        #
 ###############################
 
-# vManage
-az_vmanage_vm_size: "Standard_F16s_v2"
-site_id_vmanage: 100
-az_vmanage_image_vhd_source: null
-vmanage_default_persona: "COMPUTE_AND_DATA"
+# Manager
+az_manager_vm_size: "Standard_F16s_v2"
+site_id_manager: 100
+az_manager_image_vhd_source: null
+manager_default_persona: "COMPUTE_AND_DATA"
 
-vmanage_instances: []
-  # - hostname: "{{ az_resources_prefix }}-vManage"
+manager_instances: []
+  # - hostname: "{{ az_resources_prefix }}-Manager"
   #   system_ip: 192.168.1.1
-  #   site_id: "{{ site_id_vmanage }}"
+  #   site_id: "{{ site_id_manager }}"
 
 
-# vBond
-az_vbond_vm_size: "Standard_F4s_v2"
-site_id_vbond: 200
-az_vbond_image_vhd_source: null
+# Validator
+az_validator_vm_size: "Standard_F4s_v2"
+site_id_validator: 200
+az_validator_image_vhd_source: null
 
-vbond_instances: []
-  # - hostname: "{{ az_resources_prefix }}-vBond"
+validator_instances: []
+  # - hostname: "{{ az_resources_prefix }}-Validator"
   #   system_ip: 192.168.3.1
-  #   site_id: "{{ site_id_vbond }}"
+  #   site_id: "{{ site_id_validator }}"
 
 
-# vSmart
-az_vsmart_vm_size: "Standard_F4s_v2"
-site_id_vsmart: 300
-az_vsmart_image_vhd_source: null
+# Controller
+az_controller_vm_size: "Standard_F4s_v2"
+site_id_controller: 300
+az_controller_image_vhd_source: null
 
-vsmart_instances: []
-  # - hostname: "{{ az_resources_prefix }}-vSmart"
+controller_instances: []
+  # - hostname: "{{ az_resources_prefix }}-Controller"
   #   system_ip: 192.168.2.1
-  #   site_id: "{{ site_id_vsmart }}"
+  #   site_id: "{{ site_id_controller }}"

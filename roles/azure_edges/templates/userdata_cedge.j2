@@ -12,7 +12,7 @@ vinitparam:
  - uuid : {{ uuid }}
  - otp : {{ otp }}
  - org : {{ organization_name }}
- - vbond: {{ vbond }}
+ - vbond: {{ validator }}
 
 
 --===============0630588950316195806==
@@ -44,7 +44,7 @@ Content-Disposition: attachment; filename="config-{{ uuid }}.txt"
    config-template-name  Default_Azure_vWAN_C8000V_Template_V01
    no on-demand enable
    on-demand idle-timeout 10
-   vbond {{ vbond }} port {{ vbond_port }}
+   vbond {{ validator }} port {{ validator_port }}
   !
   bfd color lte
    hello-interval 1000

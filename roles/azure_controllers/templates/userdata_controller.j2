@@ -12,7 +12,7 @@ Content-Disposition: attachment; filename="cloud-config"
 
 write_files:
 - path: /etc/default/personality
-  content: "vedge\n"
+  content: "vsmart\n"
 - path: /etc/default/inited
   content: "1\n"
 - path: /etc/confd/init/zcloud.xml
@@ -20,16 +20,14 @@ write_files:
     <config xmlns="http://tail-f.com/ns/config/1.0">
       <system xmlns="http://viptela.com/system">
         <host-name>{{ hostname }}</host-name>
-        <personality>vedge</personality>
-        <device-model>vedge-cloud</device-model>
+        <personality>vsmart</personality>
+        <device-model>vsmart</device-model>
         <system-ip>{{ system_ip }}</system-ip>
         <organization-name>{{ organization_name }}</organization-name>
         <sp-organization-name>{{ organization_name }}</sp-organization-name>
         <site-id>{{ site_id }}</site-id>
         <vbond>
-          <remote>{{ vbond_transport_private_ip | default(default_vbond_ip) }}</remote>
-          <local/>
-          <vbond-only/>
+          <remote>{{ validator_transport_public_ip | default(default_validator_ip) }}</remote>
         </vbond>
         <aaa>
           <user>
@@ -42,7 +40,7 @@ write_files:
         <vpn-instance>
           <vpn-id>0</vpn-id>
             <interface>
-              <if-name>ge0/0</if-name>
+              <if-name>eth1</if-name>
               <ip>
                 <dhcp-client>true</dhcp-client>
               </ip>

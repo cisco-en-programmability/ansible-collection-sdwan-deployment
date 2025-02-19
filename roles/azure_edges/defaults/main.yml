@@ -31,7 +31,7 @@ az_subnets: |
     cidr: "10.0.2.0/24"
     VPN: 0
     type: transport
-  {% if vmanage_instances is defined and vmanage_instances | length > 2 %}
+  {% if manager_instances is defined and manager_instances | length > 2 %}
   - name: "{{ az_resources_prefix }}-cluster-subnet-0"
     cidr: "10.0.3.0/24"
     VPN: 0
@@ -60,8 +60,8 @@ az_allowed_subnets: null
 # Cloud-init general configurations
 admin_username: admin
 admin_password: example_password  # pragma: allowlist secret
-vbond_port: 12346
-default_vbond_ip: 192.168.1.199
+validator_port: 12346
+default_validator_ip: 192.168.1.199
 # vpn0_interface_color: default
 
 ################################

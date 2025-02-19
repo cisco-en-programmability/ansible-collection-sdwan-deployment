@@ -43,7 +43,7 @@ aws_subnets: |
     subnet_cidr: "10.0.2.0/24"  # default ips from official Cisco guides
     VPN: 0
     type: transport
-  {% if vmanage_instances is defined and vmanage_instances | length > 2 %}
+  {% if manager_instances is defined and manager_instances | length > 2 %}
   - name: "{{ aws_resources_prefix }}-cluster-subnet-0"
     subnet_cidr: "10.0.3.0/24"
     VPN: 0
@@ -74,9 +74,9 @@ aws_nacl_name: "{{ aws_resources_prefix }}-nacl"
 # Cloud-init general configurations
 admin_username: admin
 admin_password: null  # pragma: allowlist secret
-vbond_port: 12346
-# vbond_transport_private_ip: null   # note that default: 192.168.1.199
-# vbond_transport_public_ip: null    # note that default: 192.168.1.199
+validator_port: 12346
+# validator_transport_private_ip: null   # note that default: 192.168.1.199
+# validator_transport_public_ip: null    # note that default: 192.168.1.199
 
 
 
@@ -84,40 +84,40 @@ vbond_port: 12346
 #          Controllers        #
 ###############################
 
-# vManage
-aws_vmanage_ami_id: null
-aws_vmanage_instance_type: "c5.9xlarge"
+# Manager
+aws_manager_ami_id: null
+aws_manager_instance_type: "c5.9xlarge"
 
-site_id_vmanage: 100
+site_id_manager: 100
 
-vmanage_instances:
-  - hostname: "{{ aws_resources_prefix }}-vManage"
+manager_instances:
+  - hostname: "{{ aws_resources_prefix }}-Manager"
     system_ip: 192.168.1.1
-    site_id: "{{ site_id_vmanage }}"
+    site_id: "{{ site_id_manager }}"
 
 
-# vBond
-aws_vbond_ami_id: null
-aws_vbond_instance_type: "c5.large"
+# Validator
+aws_validator_ami_id: null
+aws_validator_instance_type: "c5.large"
 
-site_id_vbond: 200
+site_id_validator: 200
 
-vbond_instances:
-  - hostname: "{{ aws_resources_prefix }}-vBond"
+validator_instances:
+  - hostname: "{{ aws_resources_prefix }}-Validator"
     system_ip: 192.168.3.1
-    site_id: "{{ site_id_vbond }}"
+    site_id: "{{ site_id_validator }}"
 
 
-# vSmart
-aws_vsmart_ami_id: null
-aws_vsmart_instance_type: "c5.large"
+# Controller
+aws_controller_ami_id: null
+aws_controller_instance_type: "c5.large"
 
-site_id_vsmart: 300
+site_id_controller: 300
 
-vsmart_instances:
-  - hostname: "{{ aws_resources_prefix }}-vSmart"
+controller_instances:
+  - hostname: "{{ aws_resources_prefix }}-Controller"
     system_ip: 192.168.2.1
-    site_id: "{{ site_id_vsmart }}"
+    site_id: "{{ site_id_controller }}"
 
 
 

@@ -27,8 +27,8 @@ aws_resources_prefix: "{{ organization_name }}"
 # Cloud-init general configurations
 admin_username: admin
 admin_password: null  # pragma: allowlist secret
-vbond_port: 12346
-default_vbond_ip: 192.168.1.199  # default ips from official Cisco guides
+validator_port: 12346
+default_validator_ip: 192.168.1.199  # default ips from official Cisco guides
 # vpn0_interface_color: default
 
 
@@ -36,28 +36,28 @@ default_vbond_ip: 192.168.1.199  # default ips from official Cisco guides
 #          Controllers        #
 ###############################
 
-# vManage
-aws_vmanage_ami_id: null
-aws_vmanage_instance_type: "c5.9xlarge"
+# Manager
+aws_manager_ami_id: null
+aws_manager_instance_type: "c5.9xlarge"
 
-vmanage_default_persona: "COMPUTE_AND_DATA"
-site_id_vmanage: 100
+manager_default_persona: "COMPUTE_AND_DATA"
+site_id_manager: 100
 
-vmanage_instances: []
+manager_instances: []
 
-# vBond
-aws_vbond_ami_id: null
-aws_vbond_instance_type: "c5.large"
+# Validator
+aws_validator_ami_id: null
+aws_validator_instance_type: "c5.large"
 
-site_id_vbond: 200
+site_id_validator: 200
 
-vbond_instances: []
+validator_instances: []
 
 
-# vSmart
-aws_vsmart_ami_id: null
-aws_vsmart_instance_type: "c5.large"
+# Controller
+aws_controller_ami_id: null
+aws_controller_instance_type: "c5.large"
 
-site_id_vsmart: 300
+site_id_controller: 300
 
-vsmart_instances: []
+controller_instances: []

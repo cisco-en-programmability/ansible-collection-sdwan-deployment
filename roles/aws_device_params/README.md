@@ -11,7 +11,7 @@ The `aws_device_params` role generates deployment facts for already deployed cEd
 - `mgmt_public_ip`
 - `transport_public_ip`
 - `service_interfaces`
-Additionally the role sets the `manager_authentication` variable, which can be used for logging to vManage in other roles.
+Additionally the role sets the `manager_authentication` variable, which can be used for logging to Manager in other roles.
 
 ## Requirements
 

@@ -19,41 +19,41 @@ cloud_provider: null  # can be either aws or azure
 # Cloud-init general configurations
 admin_username: admin
 admin_password: dummypassword  # pragma: allowlist secret
-vbond_port: 12346
-vbond_transport_private_ip: X.X.X.X
-vbond_transport_public_ip: Y.Y.Y.Y
+validator_port: 12346
+validator_transport_private_ip: X.X.X.X
+validator_transport_public_ip: Y.Y.Y.Y
 
 
 ###############################
 #          Controllers        #
 ###############################
 
-# vManage
-site_id_vmanage: 100
+# Manager
+site_id_manager: 100
 
-vmanage_instances:
-  - hostname: terraformvmanage1 # "{{ resources_prefix }}-vManage"
+manager_instances:
+  - hostname: terraformmanager1 # "{{ resources_prefix }}-Manager"
     system_ip: 192.168.1.1
-    site_id: "{{ site_id_vmanage }}"
+    site_id: "{{ site_id_manager }}"
     vpn0_default_gateway: 10.0.2.1  # has to be set if cloud_provider == "azure"
 
-# vBond
-site_id_vbond: 200
+# Validator
+site_id_validator: 200
 
-vbond_instances:
-  - hostname: terraformvbond1 # "{{ resources_prefix }}-vBond"
+validator_instances:
+  - hostname: terraformvalidator1 # "{{ resources_prefix }}-Validator"
     system_ip: 192.168.3.1
-    site_id: "{{ site_id_vbond }}"
+    site_id: "{{ site_id_validator }}"
     vpn0_default_gateway: 10.0.2.1  # has to be set if cloud_provider == "azure"
 
 
-# vSmart
-site_id_vsmart: 300
+# Controller
+site_id_controller: 300
 
-vsmart_instances:
-  - hostname: terraformvsmart1 # "{{ resources_prefix }}-vSmart"
+controller_instances:
+  - hostname: terraformcontroller1 # "{{ resources_prefix }}-Controller"
     system_ip: 192.168.2.1
-    site_id: "{{ site_id_vsmart }}"
+    site_id: "{{ site_id_controller }}"
     vpn0_default_gateway: 10.0.2.1  # has to be set if cloud_provider == "azure"
 
 
@@ -68,4 +68,4 @@ edge_instances:
     site_id: 1002
     system_ip: 192.168.102.1
     uuid: XXXX-XXXX-XXXX
-    vbond: 1.1.1.1
+    validator: 1.1.1.1
