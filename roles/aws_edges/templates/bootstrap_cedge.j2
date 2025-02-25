@@ -13,6 +13,14 @@ vinitparam:
  - otp : {{ otp }}
  - org : {{ organization_name }}
  - vbond: {{ vbond }}
+{% if controller_certificate_auth is defined and controller_certificate_auth == "enterprise" %}
+ - rcc : true
+ca-certs:
+  remove-defaults: false
+  trusted:
+  - |
+   {{ enterprise_root_ca | indent(3) }}
+{% endif %}
 
 
 --===============0630588950316195806==

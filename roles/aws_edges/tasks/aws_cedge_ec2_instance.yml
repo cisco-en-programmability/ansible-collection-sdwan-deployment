@@ -79,7 +79,8 @@
     src: ./bootstrap_cedge.j2
     dest: "{{ userdata_cedge_templated }}"
     mode: "0644"
-
+  vars:
+    enterprise_root_ca: "{{ lookup('file', enterprise_ca_cert_path | default(results_dir~'/certificates/ca.crt')) }}"
 
 - name: Set interfaces fact
   ansible.builtin.set_fact:
