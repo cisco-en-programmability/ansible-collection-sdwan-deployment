@@ -133,13 +133,11 @@
 
 - name: "Set vpn0_default_gateway fact from VPN 0 subnet value"
   ansible.builtin.set_fact:
-    vpn0_default_gateway: "{{ subnet.cidr | ansible.utils.ipaddr('1') | ansible.utils.ipaddr('address') }}"
-  loop: "{{ az_subnets }}"
-  loop_control:
-    loop_var: subnet
-  when:
-    - subnet.VPN == 0
-    - subnet.type != "cluster"
+    vpn0_default_gateway: "{{ vpn0_subnet | ansible.utils.ipaddr('1') | ansible.utils.ipaddr('address') }}"
+    vpn512_default_gateway: "{{ vpn512_subnet | ansible.utils.ipaddr('1') | ansible.utils.ipaddr('address') }}"
+  vars:
+    vpn0_subnet: "{{ az_subnets | json_query('[?VPN==`0` && type!=`cluster`].cidr | [0]') }}"
+    vpn512_subnet: "{{ az_subnets | json_query('[?VPN==`512` && type!=`cluster`].cidr | [0]') }}"
 
 - name: "Set path for bootstrap configuration: {{ userdata_cedge_path }}-{{ hostname }}"
   ansible.builtin.set_fact:

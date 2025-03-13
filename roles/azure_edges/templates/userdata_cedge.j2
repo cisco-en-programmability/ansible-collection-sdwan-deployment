@@ -13,6 +13,14 @@ vinitparam:
  - otp : {{ otp }}
  - org : {{ organization_name }}
  - vbond: {{ vbond }}
+{% if controller_certificate_auth is defined and controller_certificate_auth == "enterprise" %}
+ - rcc : true
+ca-certs:
+  remove-defaults: false
+  trusted:
+  - |
+   {{ enterprise_root_ca | indent(3) }}
+{% endif %}
 
 
 --===============0630588950316195806==
@@ -189,6 +197,8 @@ Content-Disposition: attachment; filename="config-{{ uuid }}.txt"
    mtu           1500
    negotiation auto
   exit
+  ip route 0.0.0.0 0.0.0.0 {{ vpn512_default_gateway }}
+  ip route 0.0.0.0 0.0.0.0 {{ vpn0_default_gateway }}
   interface Tunnel1
    no shutdown
    ip unnumbered GigabitEthernet1
