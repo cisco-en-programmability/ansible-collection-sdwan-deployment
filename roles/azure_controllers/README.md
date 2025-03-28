@@ -62,6 +62,7 @@ The `azure_controllers` role automates the deployment of Cisco SD-WAN controller
 - `az_subnets`: Definitions of Azure subnets within the Virtual Network.
 - `admin_username`: Admin username for the deployed VMs.
 - `admin_password`: Admin password for the deployed VMs.
+- `admin_ssh_keys`: List of SSH public keys authorized for admin login.
 
 ## Example Playbook
 

@@ -65,6 +65,7 @@ Variables with default values that can be overridden by the user:
 - `az_cedge_image_version`: The version of the Cisco Edge compute image.
 - `admin_username`: The admin username for virtual machine access.
 - `admin_password`: The admin password for virtual machine access.
+- `admin_ssh_keys`: List of SSH public keys authorized for admin login.
 
 ## Example Playbook
 

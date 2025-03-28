@@ -57,6 +57,7 @@ The following variables must be set prior to executing the role:
 - `az_subnets`: A list of subnet definitions for the Azure Virtual Network.
 - `admin_username`: Administrator username for the SD-WAN controller instances.
 - `admin_password`: Administrator password for the SD-WAN controller instances.
+- `admin_ssh_keys`: List of SSH public keys authorized for admin login.
 
 ## Example Playbook
 

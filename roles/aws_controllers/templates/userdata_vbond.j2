@@ -78,4 +78,11 @@ write_files:
         </vpn-instance>
       </vpn>
     </config>
+{% if admin_ssh_keys %}
+- path: /home/admin/.ssh/authorized_keys
+  content: |
+{% for k in admin_ssh_keys %}
+    {{ k }}
+{% endfor %}
+{% endif %}
 --===============8815267485200512281==

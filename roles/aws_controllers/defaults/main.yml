@@ -27,6 +27,7 @@ aws_resources_prefix: "{{ organization_name }}"
 # Cloud-init general configurations
 admin_username: admin
 admin_password: null  # pragma: allowlist secret
+admin_ssh_keys: []
 vbond_port: 12346
 default_vbond_ip: 192.168.1.199  # default ips from official Cisco guides
 # vpn0_interface_color: default

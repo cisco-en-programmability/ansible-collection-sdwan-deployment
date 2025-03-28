@@ -54,6 +54,7 @@ The following variables must be set prior to executing the role:
 - `aws_region`: AWS region to host the resources.
 - `aws_availibility_zone`: Specific AWS availability zone within the selected region.
 - `admin_password`: Password for administrative access to controller instances.
+- `admin_ssh_keys`: List of SSH public keys authorized for admin login.
 - `aws_vpc_config`: Configuration details for the AWS VPC.
 - `aws_security_group_config`: Settings for the AWS security group.
 - `aws_subnets_config`: Specifications for the AWS subnets.

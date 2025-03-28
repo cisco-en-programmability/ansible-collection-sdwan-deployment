@@ -101,6 +101,14 @@ write_files:
       </vpn>
     </config>
 
+{% if admin_ssh_keys %}
+- path: /home/admin/.ssh/authorized_keys
+  content: |
+{% for k in admin_ssh_keys %}
+    {{ k }}
+{% endfor %}
+{% endif %}
+
 {% if vmanage_cluster_private_ip is defined %}
 - path: /home/admin/customized.cfg
   content: |

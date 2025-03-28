@@ -171,6 +171,13 @@ Content-Disposition: attachment; filename="config-{{ uuid }}.txt"
   ip bootp server
   no ip source-route
   no ip ssh bulk-mode
+{% if admin_ssh_keys %}
+  ip ssh pubkey-chain
+   username admin
+{% for k in admin_ssh_keys %}
+    key-hash ssh-rsa {{ k.split()[1] | ansible.builtin.b64decode | ansible.builtin.md5 | upper }}
+{% endfor %}
+{% endif %}
   no ip http server
   no ip http secure-server
   no ip http ctc authentication
