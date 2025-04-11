@@ -1,0 +1,14 @@
+{% filter from_yaml %}
+{% for instance_item in edge_instances if instance_item.hostname not in instances_info %}
+{% for subnet_item in az_subnets %}
+{% if subnet_item.type in ("mgmt", "transport", "service") %}
+{% include "deployment_public_ip_addresses.j2" %}
+
+{% include "deployment_network_interfaces.j2" %}
+
+{% endif %}
+{% endfor %}
+{% include "deployment_virtual_machines.j2" %}
+
+{% endfor %}
+{% endfilter %}

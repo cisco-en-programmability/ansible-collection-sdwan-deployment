@@ -1,0 +1,26 @@
+- type: "Microsoft.Network/networkInterfaces"
+  apiVersion: "2024-05-01"
+  name: "nic-{{ instance_item['hostname'] }}-vpn-{{ subnet_item.VPN }}"
+  location: "{{ az_location }}"
+  dependsOn:
+    - "[resourceId('Microsoft.Network/publicIPAddresses', 'public-ip-{{ instance_item['hostname'] }}-vpn-{{ subnet_item.VPN }}')]"
+  properties:
+    ipConfigurations:
+      - name: "ipconfig-vpn-{{ subnet_item.VPN }}"
+        properties:
+          primary: true
+          privateIPAllocationMethod: "Dynamic"
+{% if subnet_item.type in ("mgmt", "transport") %}
+          publicIPAddress:
+            id: "[resourceId('Microsoft.Network/publicIPAddresses', 'public-ip-{{ instance_item['hostname'] }}-vpn-{{ subnet_item.VPN }}')]"
+{% endif %}
+          subnet:
+            id: "{{ (az_virtualnetwork_info['virtualnetworks'][0]['subnets'] | json_query('[?name==`' ~ subnet_item.name ~ '`].id'))[0] }}"
+    networkSecurityGroup:
+      id: "{{ az_res_gr['securitygroups'][0]['id'] }}"
+  tags:
+    Name: "nic-{{ instance_item['hostname'] }}-vpn-{{ subnet_item.VPN }}"
+    Creator: "{{ az_tag_creator }}"
+    Organization: "{{ organization_name }}"
+    VPN: "{{ subnet_item.VPN }}"
+    type: "{{ subnet_item.type }}"
