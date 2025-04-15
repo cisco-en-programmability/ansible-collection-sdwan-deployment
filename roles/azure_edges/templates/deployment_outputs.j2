@@ -1,0 +1,27 @@
+{% filter from_yaml %}
+public_ip_addresses:
+  type: array
+  value:
+{% for instance in edge_instances if instance.hostname not in instances_info %}
+{% for subnet_item in az_subnets if subnet_item.type in ("mgmt", "transport") %}
+    - name: public-ip-{{ instance.hostname }}-vpn-{{ subnet_item.VPN }}
+      ip: "[reference('public-ip-{{ instance.hostname }}-vpn-{{ subnet_item.VPN }}').ipAddress]"
+      type: {{ subnet_item.type }}
+      host: {{ instance.hostname }}
+{% endfor %}
+{% endfor %}
+service_interfaces:
+  type: object
+  value:
+{% for instance in edge_instances if instance.hostname not in instances_info %}
+{% if "service" in az_subnets | map(attribute='type') %}
+    {{ instance['hostname'] }}:
+{% for subnet_item in az_subnets if subnet_item.type in ("service") %}
+      addr: "[reference('nic-{{ instance_item['hostname'] }}-vpn-{{ subnet_item.VPN }}').ipConfigurations[0].privateIPAddress]"
+      index: {{ loop.index0 + 2}}
+{% endfor %}
+{% else %}
+    {{ instance['hostname'] }}: {}
+{% endif %}
+{% endfor %}
+{% endfilter %}

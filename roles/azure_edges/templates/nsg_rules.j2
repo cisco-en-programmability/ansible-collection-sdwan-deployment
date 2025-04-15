@@ -1,0 +1,13 @@
+{% filter from_yaml %}
+---
+{% for public_ip in azure_deployment['deployment']['outputs']['public_ip_addresses']['value'] if public_ip['name'] not in az_res_gr.securitygroups | map(attribute='rules') | flatten | map(attribute='name') | list %}
+- name: "{{ public_ip['name'] }}"
+  protocol: "*"
+  destination_port_range: "*"
+  source_port_range: "*"
+  source_address_prefix: "{{ public_ip['ip'] }}"
+  access: Allow
+  priority: "{{ 1500 + ((az_res_gr.securitygroups | first).rules | length) + loop.index }}"
+  direction: Inbound
+{% endfor %}
+{% endfilter %}

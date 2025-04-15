@@ -78,3 +78,4 @@ edge_instances: []
 # If no edge instances configured, they will be automatically created
 # based on the PnP Portal information.
 # See `deployment_edges_config` to inspect result
+edges_parallel_deployment: false

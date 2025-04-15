@@ -1,0 +1,46 @@
+- type: "Microsoft.Compute/virtualMachines"
+  apiVersion: "2024-11-01"
+  name: "{{ instance_item['hostname'] }}"
+  location: "{{ az_location }}"
+  dependsOn:
+{% for subnet_item in az_subnets %}
+    - "[resourceId('Microsoft.Network/networkInterfaces', 'nic-{{ instance_item['hostname'] }}-vpn-{{ subnet_item.VPN }}')]"
+{% endfor %}
+  plan:
+    name: "{{ az_cedge_image_sku }}"
+    product: "{{ az_cedge_image_offer }}"
+    publisher: "{{ az_cedge_image_publisher }}"
+  properties:
+    diagnosticsProfile:
+      bootDiagnostics:
+        enabled: true
+    hardwareProfile:
+      vmSize: "{{ az_cedge_vm_size }}"
+    osProfile:
+      adminUsername: "{{ admin_username }}-tmp"
+      adminPassword: "{{ admin_password }}"
+      computerName: "{{ instance_item['hostname'] }}"
+      linuxConfiguration:
+        disablePasswordAuthentication: false
+      customData: "{{ lookup('file', userdata_cedge_path ~ '-' ~ instance_item['hostname']) | b64encode }}"
+    storageProfile:
+      imageReference:
+        publisher: "{{ az_cedge_image_publisher }}"
+        offer: "{{ az_cedge_image_offer }}"
+        sku: "{{ az_cedge_image_sku }}"
+        version: "{{ az_cedge_image_version }}"
+      osDisk:
+        name: "{{ instance_item['hostname'] }}-os-disk"
+        createOption: FromImage
+        diskSizeGB: 30
+        osType: "Linux"
+        caching: "ReadWrite"
+        managedDisk:
+          storageAccountType: "StandardSSD_ZRS"
+    networkProfile:
+      networkInterfaces:
+{% for subnet_item in az_subnets %}
+        - id: "[resourceId('Microsoft.Network/networkInterfaces', 'nic-{{ instance_item['hostname'] }}-vpn-{{ subnet_item.VPN }}')]"
+          properties:
+            primary: {{ subnet_item.type == "mgmt" | string }}
+{% endfor %}

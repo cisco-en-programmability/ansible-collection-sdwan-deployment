@@ -1,0 +1,13 @@
+- type: "Microsoft.Network/publicIPAddresses"
+  apiVersion: "2024-05-01"
+  name: "public-ip-{{ instance_item['hostname'] }}-vpn-{{ subnet_item.VPN }}"
+  location: "{{ az_location }}"
+  properties:
+    publicIPAllocationMethod: "Static"
+  tags:
+    Name: "public-ip-{{ instance_item['hostname'] }}-vpn-{{ subnet_item.VPN }}"
+    Creator: "{{ az_tag_creator }}"
+    Machine: "{{ instance_item['hostname'] }}"
+    VPN: "{{ subnet_item.VPN }}"
+    Subnet: "{{ subnet_item.name }}"
+    type: "{{ subnet_item.type }}"
