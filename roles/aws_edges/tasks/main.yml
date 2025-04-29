@@ -66,7 +66,22 @@
   loop: "{{ edge_instances }}"
   loop_control:
     loop_var: instance_item
-  when: edge_instances is defined and (instance_item.hostname not in instances_info or not instances_info[instance_item.hostname])
+  when:
+    - edge_instances is defined
+    - instance_item.hostname not in instances_info or not instances_info[instance_item.hostname]
+    - >
+      wan_edges is not defined
+      or wan_edges | json_query('[?uuid==`'~instance_item['uuid']~'`] | [?!contains(keys(@), `foreign`) || !foreign]')
+
+- name: Add NSG rules for foreign Edges
+  ansible.builtin.include_tasks: aws_cedge_nsg.yml
+  loop: "{{ wan_edges }}"
+  loop_control:
+    loop_var: instance_item
+  when:
+    - wan_edges is defined
+    - instance_item['mgmt_public_ip'] is defined
+    - instance_item['transport_public_ip'] is defined
 
 - name: Extract deployment facts
   ansible.builtin.include_role:

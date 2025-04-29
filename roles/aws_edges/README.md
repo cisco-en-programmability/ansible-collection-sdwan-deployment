@@ -45,6 +45,7 @@ The `aws_edges` role is an essential component of the `cisco.sdwan_deployment` c
 - `results_dir`: Directory where deployment results will be stored.
 - `aws_deployed_edges_data`: File to store data of deployed edge devices.
 - `userdata_cedge_path`: Path to the user data configuration for cEdge devices.
+- `wan_edges`: Optional list of edge devices that will be deployed. By default all missing devices are deployed.
 
 ### Required variables
 
