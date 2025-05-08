@@ -52,7 +52,6 @@ Before running the role, define the following variables:
 
 - `organization_name`: The name of your organization, influencing AWS resource naming.
 - `aws_region`: The AWS region for deploying resources.
-- `aws_availibility_zone`: The desired AWS availability zone within the region.
 - `aws_allowed_subnets`: List of subnets allowed to interact with the AWS resources.
 
 ## Example Playbook

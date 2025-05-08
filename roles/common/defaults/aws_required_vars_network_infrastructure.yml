@@ -6,5 +6,4 @@
 required_variables:
   organization_name: "{{ organization_name }}"
   aws_region: "{{ aws_region }}"
-  aws_availibility_zone: "{{ aws_availibility_zone }}"
   aws_allowed_subnets: "{{ aws_allowed_subnets }}"
