@@ -65,7 +65,6 @@
     cidr: "{{ subnet_config.subnet_cidr }}"
     map_public: "{{ subnet_config.type in ['mgmt', 'transport'] }}"
     region: "{{ aws_region }}"
-    az: "{{ aws_availibility_zone }}"
     tags:
       Name: "{{ subnet_config.name }}"
       Creator: "{{ aws_tag_creator }}"

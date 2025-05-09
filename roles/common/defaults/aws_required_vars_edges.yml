@@ -6,7 +6,6 @@
 required_variables:
   organization_name: "{{ organization_name }}"
   aws_region: "{{ aws_region }}"
-  aws_availibility_zone: "{{ aws_availibility_zone }}"
   admin_password: "{{ admin_password }}"
   aws_vpc_config: "{{ aws_vpc_config }}"
   aws_security_group_config: "{{ aws_security_group_config }}"
