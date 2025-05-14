@@ -43,14 +43,16 @@
           {{
             instances_info | default({}) | combine({
               instance_item.hostname: {
-                'state': (ec2_instance_info.results | map(attribute='instances') | flatten | selectattr('tags.Name', 'equalto', instance_item.hostname) | map(attribute='state.name') | first)
+                'state': (_instances | selectattr('tags.Name', 'equalto', instance_item.hostname) | map(attribute='state.name') | first)
               }
-            }) if instance_item.hostname in (ec2_instance_info.results | map(attribute='instances') | flatten | map(attribute='tags.Name') | list) else instances_info
+            }) if instance_item.hostname in (_instances | map(attribute='tags.Name') | list) else instances_info
           }}
       loop: "{{ instances_marked_for_deployment }}"
       loop_control:
         loop_var: instance_item
       when: instance_item | length > 0
+      vars:
+        _instances: "{{ ec2_instance_info.results | map(attribute='instances') | flatten }}"
 
     - name: Prompt user information about existing instances
       ansible.builtin.pause:

@@ -11,10 +11,7 @@
 # 1 ec2 instance
 
 - name: Discover required information about network infrastructure if edge is in different zone
-  when: >
-    "region" not in all_aws_vpc_config
-    or "region" not in all_aws_security_group_config
-    or "region" not in all_aws_sunbnets_config
+  when: "'region' not in all_aws_security_group_config or 'region' not in all_aws_sunbnets_config"
   block:
     - name: Gather network resources information
       ansible.builtin.include_role:
@@ -25,27 +22,25 @@
 
     - name: Set reusable infrastructure facts from discovered variables
       ansible.builtin.set_fact:
-        all_aws_vpc_config: "{{ all_aws_vpc_config | combine({region: aws_discovered_vpc}) }}"
         all_aws_security_group_config: "{{ all_aws_security_group_config | combine({region: aws_discovered_security_group}) }}"
         all_aws_subnets_config: "{{ all_aws_subnets_config | combine({region: aws_discovered_subnets}) }}"
 
 - name: Use information about network infrastructure from default region
   ansible.builtin.set_fact:
-    aws_edge_vpc_config: "{{ all_aws_vpc_config[region] }}"
-    aws_edge_security_group_config: "{{ all_aws_security_group_config[region] }}"
-    aws_edge_subnets_config: "{{ all_aws_subnets_config[region] }}"
+    regional_security_group_config: "{{ all_aws_security_group_config[region] }}"
+    regional_subnets_config: "{{ all_aws_subnets_config[region] }}"
 
 # NICs
 - name: Filter required subnets for instance creation. Set aws_mgmt_subnet and aws_transport_subnet facts
   ansible.builtin.set_fact:
-    aws_mgmt_subnet: "{{ aws_edge_subnets_config | selectattr('tags.type', 'equalto', 'mgmt') | list | first }}"
-    aws_transport_subnet: "{{ aws_edge_subnets_config | selectattr('tags.type', 'equalto', 'transport') | list | first }}"
+    aws_mgmt_subnet: "{{ regional_subnets_config | selectattr('tags.type', 'equalto', 'mgmt') | list | first }}"
+    aws_transport_subnet: "{{ regional_subnets_config | selectattr('tags.type', 'equalto', 'transport') | list | first }}"
 
 - name: Create network interfaces for cedge
   amazon.aws.ec2_eni:
     subnet_id: "{{ subnet_item.id }}"
     description: Network interface for SD-WAN Controller
-    security_groups: "{{ aws_edge_security_group_config.group_id }}"
+    security_groups: "{{ regional_security_group_config.group_id }}"
     region: "{{ region }}"
     tags:
       Name: "nic-{{ subnet_item.tags.Name }}"
@@ -54,7 +49,7 @@
       VPN: "{{ subnet_item.tags.VPN }}"
       type: "{{ subnet_item.tags.type }}"
   register: network_interfaces_cedge
-  loop: "{{ aws_edge_subnets_config }}"
+  loop: "{{ regional_subnets_config }}"
   loop_control:
     loop_var: subnet_item
     label: "nic-{{ subnet_item.tags.Name }}"

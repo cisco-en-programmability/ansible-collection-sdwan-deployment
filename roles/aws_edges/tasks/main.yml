@@ -32,8 +32,6 @@
 
 - name: Cache network infrastructure information for default AWS region
   ansible.builtin.set_fact:
-    all_aws_vpc_config:
-      "{{ aws_region }}": "{{ aws_discovered_vpc }}"
     all_aws_security_group_config:
       "{{ aws_region }}": "{{ aws_discovered_security_group }}"
     all_aws_subnets_config:
