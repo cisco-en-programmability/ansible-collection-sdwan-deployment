@@ -17,6 +17,7 @@ organization_name: null  # has to be set by user
 aws_region: null
 aws_resources_prefix: "{{ organization_name }}"
 aws_tag_creator: "{{ organization_name }}"
+all_aws_regions: "{{ [aws_region] + wan_edges | default([]) | json_query('[?aws_region].aws_region') | unique }}"
 
 # VPC
 aws_vpc_name: "{{ aws_resources_prefix }}-vpc"

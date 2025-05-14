@@ -1,0 +1,7 @@
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
+# GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+---
+
+# Common
+all_aws_regions: "{{ [aws_region] + wan_edges | default([]) | json_query('[?aws_region].aws_region') | unique }}"

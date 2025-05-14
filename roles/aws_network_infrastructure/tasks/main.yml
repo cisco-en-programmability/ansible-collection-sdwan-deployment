@@ -26,4 +26,11 @@
     mode: "0755"
 
 - name: Create network infrastructure on AWS
-  ansible.builtin.include_tasks: aws_create_network_infrastructure.yml
+  ansible.builtin.include_tasks:
+    file: aws_create_network_infrastructure.yml
+    apply:
+      vars:
+        aws_region: "{{ item }}"
+  loop: "{{ all_aws_regions }}"
+  loop_control:
+    label: "{{ item }}"
