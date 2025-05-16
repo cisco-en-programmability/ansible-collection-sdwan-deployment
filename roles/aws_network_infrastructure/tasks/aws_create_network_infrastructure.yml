@@ -160,18 +160,20 @@
         from_port: 8
         to_port: -1
         cidr_ip: "{{ aws_allowed_subnets }}"
-    rules_egress:
-      - proto: -1
-        from_port: 0
-        to_port: 0
-        cidr_ip: 0.0.0.0/0
+    rules_egress: "{{ egress_allow_all if not aws_sg_block_egress else [] }}"
     purge_rules: false
     purge_tags: false
-    purge_rules_egress: false
+    purge_rules_egress: "{{ aws_sg_block_egress and _created_vpc.changed }}"
     tags:
       Name: "{{ aws_security_group_name }}"
       Creator: "{{ aws_tag_creator }}"
   register: _created_security_group
+  vars:
+    egress_allow_all:
+      - proto: -1
+        from_port: 0
+        to_port: 0
+        cidr_ip: 0.0.0.0/0
 
 - name: Copy Security Group resources information to log file
   ansible.builtin.blockinfile:

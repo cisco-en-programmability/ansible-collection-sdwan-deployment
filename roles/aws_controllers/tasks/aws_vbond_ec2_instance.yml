@@ -10,6 +10,25 @@
 # 2 aws_eip
 # 1 ec2 instance
 
+- name: AMI Registration from EBS Snapshot
+  amazon.aws.ec2_ami:
+    name: "{{ aws_tag_creator }}-Validator"
+    region: "{{ aws_region }}"
+    state: present
+    architecture: x86_64
+    virtualization_type: hvm
+    root_device_name: /dev/xvda
+    device_mapping:
+      - device_name: /dev/xvda
+        snapshot_id: "{{ volume_snapshots[0] }}"
+        delete_on_termination: true
+        volume_type: gp2
+    tags:
+      Name: "{{ aws_tag_creator }}-Validator"
+      Creator: "{{ aws_tag_creator }}"
+  when: volume_snapshots
+  register: ami_result
+
 
 # NICs
 - name: Filter required subnets for instance creation. Set aws_mgmt_subnet and aws_transport_subnet facts
@@ -95,7 +114,7 @@
     count: 1
     instance_type: "{{ aws_vbond_instance_type }}"
     image:
-      id: "{{ aws_vbond_ami_id }}"
+      id: "{{ ami_result.image_id if volume_snapshots else aws_vmanage_ami_id }}"
     state: present
     vpc_subnet_id: "{{ aws_mgmt_subnet.id }}"
     region: "{{ aws_region }}"
@@ -120,6 +139,14 @@
           volume_size: 23
           delete_on_termination: true
   register: ec2_vbond
+
+- name: Deregister/Delete AMI (keep associated snapshots)
+  amazon.aws.ec2_ami:
+    image_id: "{{ ami_result.image_id }}"
+    delete_snapshot: false
+    state: absent
+    region: "{{ aws_region }}"
+  when: volume_snapshots
 
 - name: Store vBond instance details for deployment_results
   ansible.builtin.set_fact:
@@ -168,7 +195,14 @@
     purge_rules: false
     purge_tags: false
     purge_rules_egress: false
-    rules:
+    rules: "{{ sg_rules_vbond }}"
+    rules_egress: "{{ sg_rules_vbond if aws_sg_block_egress else [] }}"
+  register: allow_traffic
+  retries: 3
+  delay: 3
+  until: allow_traffic is succeeded
+  vars:
+    sg_rules_vbond:
       - proto: all
         cidr_ip: "{{ eip_vbond.results[0].public_ip }}/32"
         rule_desc: "{{ hostname }} - mgmt (VPN 512)"
@@ -181,11 +215,6 @@
       - proto: all
         cidr_ipv6: "{{ instance.transport_public_ipv6 }}/128"
         rule_desc: "{{ hostname }} - transport IPv6 (VPN 0)"
-    rules_egress: []
-  register: allow_traffic
-  retries: 3
-  delay: 3
-  until: allow_traffic is succeeded
 
 - name: Create record in internal DNS zone
   amazon.aws.route53:

@@ -80,6 +80,20 @@
       Creator: "{{ az_tag_creator }}"
       Organization: "{{ organization_name }}"
 
+- name: "Create Network Security Group: {{ az_network_security_group }}"
+  azure.azcollection.azure_rm_securitygroup:
+    resource_group: "{{ az_resource_group }}"
+    name: "{{ az_network_security_group }}"
+    rules:
+      - name: DenyAll
+        access: Deny
+        direction: Outbound
+    tags:
+      Name: "{{ az_network_security_group }}"
+      Creator: "{{ az_tag_creator }}"
+      Organization: "{{ organization_name }}"
+  when: az_nsg_block_edgess
+
 - name: Create a private DNS zone
   azure.azcollection.azure_rm_privatednszone:
     resource_group: "{{ az_resource_group }}"

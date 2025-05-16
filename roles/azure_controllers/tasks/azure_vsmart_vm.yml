@@ -162,7 +162,7 @@
     location: "{{ az_location }}"
     os_type: "Linux"
     hyper_v_generation: "V1"
-    source: "{{ az_vsmart_image_vhd_source }}"
+    source: "{{ volume_snapshots[0] if volume_snapshots else az_vsmart_image_vhd_source }}"
 
 - name: "Create vSmart VM: {{ hostname }}"
   azure.azcollection.azure_rm_virtualmachine:
