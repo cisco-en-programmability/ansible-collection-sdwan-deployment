@@ -1,0 +1,84 @@
+# Copyright 2024 Cisco Systems, Inc. and its affiliates
+# GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+---
+
+- name: "Set vpn0_default_gateway fact from VPN 0 subnet value"
+  ansible.builtin.set_fact:
+    vpn0_default_gateway: "{{ vpn0_subnet | ansible.utils.ipaddr('1') | ansible.utils.ipaddr('address') }}"
+    vpn512_default_gateway: "{{ vpn512_subnet | ansible.utils.ipaddr('1') | ansible.utils.ipaddr('address') }}"
+  vars:
+    vpn0_subnet: "{{ az_subnets | json_query('[?VPN==`0` && type!=`cluster`].cidr | [0]') }}"
+    vpn512_subnet: "{{ az_subnets | json_query('[?VPN==`512` && type!=`cluster`].cidr | [0]') }}"
+
+- name: "Get info about NSG: {{ az_network_security_group }}"
+  azure.azcollection.azure_rm_securitygroup_info:
+    resource_group: "{{ az_resource_group }}"
+    name: "{{ az_network_security_group }}"
+  register: az_res_gr
+
+- name: "Template userdata file for cedge: {{ hostname }}"
+  ansible.builtin.template:
+    src: ./userdata_cedge.j2  # ./bond.j2 ./userdata_cedge.j2
+    dest: "{{ userdata_cedge_path }}-{{ hostname }}"
+    mode: "0644"
+  vars:
+    hostname: "{{ instance_item.hostname | replace('_', '-') }}"
+    uuid: "{{ instance_item.uuid }}"
+    otp: "{{ instance_item.otp }}"
+    vbond: "{{ instance_item.vbond }}"
+    system_ip: "{{ instance_item.system_ip }}"
+    site_id: "{{ instance_item.site_id }}"
+  loop: "{{ edge_instances }}"
+  loop_control:
+    loop_var: instance_item
+  when: instance_item.hostname not in instances_info or not instances_info[instance_item.hostname]
+
+- name: Create Azure Deployment
+  azure_rm_deployment:
+    resource_group: "{{ az_resource_group }}"
+    name: "{{ az_resources_prefix }}-edges"
+    location: "{{ az_location }}"
+    wait_for_deployment_completion: true
+    template:
+      $schema: "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"
+      contentVersion: "1.0.0.0"
+      resources: "{{ lookup('template', 'deployment_resources.j2') }}"
+      outputs: "{{ lookup('template', 'deployment_outputs.j2') }}"
+  register: azure_deployment
+
+- name: "Extend Network Security Group for machine, NSG: {{ az_network_security_group }}"
+  azure.azcollection.azure_rm_securitygroup:
+    resource_group: "{{ az_resource_group }}"
+    name: "{{ az_network_security_group }}"
+    rules: "{{ lookup('template', 'nsg_rules.j2') }}"
+    tags:
+      Name: "{{ az_network_security_group }}"
+      Creator: "{{ az_tag_creator }}"
+      Organization: "{{ organization_name }}"
+  vars:
+    deployed_ips: "{{ azure_deployment['deployment']['outputs']['public_ip_addresses']['value'] | map(attribute='ip') }}"
+    existing_nsgs: "{{ az_res_gr.securitygroups | map(attribute='rules') | flatten | map(attribute='source_address_prefix') | list }}"
+  when: deployed_ips | difference(existing_nsgs)
+
+- name: Update deployment facts - cedge - that will be consumed by vManage-client in Ansible
+  ansible.builtin.set_fact:
+    deployment_facts:
+      deployed_edge_instances: "{{ deployment_facts.deployed_edge_instances + [instance] }}"
+  vars:
+    instance:
+      hostname: "{{ instance_item['hostname'] }}"
+      system_ip: "{{ instance_item['system_ip'] }}"
+      admin_username: "{{ admin_username }}"
+      admin_password: "{{ admin_password }}"
+      mgmt_public_ip: "{{ all_public_ips | json_query('[?host==`'~instance_item['hostname']~'` && type==`mgmt`].ip | [0]') }}"
+      transport_public_ip: "{{ all_public_ips | json_query('[?host==`'~instance_item['hostname']~'` && type==`transport`].ip | [0]') }}"
+      service_interfaces: "{{ service_interfaces if 'service' in az_subnets | map(attribute='type') else omit }}"
+      uuid: "{{ instance_item['uuid'] }}"
+      site_id: "{{ instance_item['site_id'] }}"
+    all_public_ips: "{{ azure_deployment['deployment']['outputs']['public_ip_addresses']['value'] }}"
+    service_interfaces: "{{ azure_deployment['deployment']['outputs']['service_interfaces']['value'][instance_item['hostname']] }}"
+  loop: "{{ edge_instances }}"
+  loop_control:
+    loop_var: instance_item
+  when: instance_item.hostname not in instances_info or not instances_info[instance_item.hostname]
