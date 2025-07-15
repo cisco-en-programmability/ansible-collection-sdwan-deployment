@@ -38,15 +38,7 @@
   azure.azcollection.azure_rm_securitygroup:
     resource_group: "{{ az_resource_group }}"
     name: "{{ az_network_security_group }}"
-    rules:
-      - name: "{{ public_ip_state.state.name }}"
-        protocol: "*"
-        destination_port_range: "*"
-        source_port_range: "*"
-        source_address_prefix: "{{ public_ip_state.state.ip_address }}"
-        access: Allow
-        priority: "{{ 2500 + ((az_res_gr.securitygroups | first).rules | length) + 1 + my_idx }}"
-        direction: Inbound
+    rules: "{{ [inbound_rule, outbound_rule] if az_nsg_block_edgess else [inbound_rule] }}"
     tags:
       Name: "{{ az_network_security_group }}"
       Creator: "{{ az_tag_creator }}"
@@ -59,6 +51,25 @@
   when:
     - public_ip_state.state is defined
     - public_ip_state.state.name not in az_res_gr.securitygroups | map(attribute='rules') | flatten | map(attribute='name') | list
+  vars:
+    inbound_rule:
+      name: "{{ public_ip_state.state.name }}"
+      protocol: "*"
+      destination_port_range: "*"
+      source_port_range: "*"
+      source_address_prefix: "{{ public_ip_state.state.ip_address }}"
+      access: Allow
+      priority: "{{ 2500 + ((az_res_gr.securitygroups | first).rules | length) + 1 + my_idx }}"
+      direction: Inbound
+    outbound_rule:
+      name: "{{ public_ip_state.state.name }}-out"
+      protocol: "*"
+      destination_port_range: "*"
+      source_port_range: "*"
+      destination_address_prefix: "{{ public_ip_state.state.ip_address }}"
+      access: Allow
+      priority: "{{ 2500 + ((az_res_gr.securitygroups | first).rules | length) + 1 + my_idx }}"
+      direction: Outbound
 
 - name: "Create virtual network interface cards for public interfaces"
   azure.azcollection.azure_rm_networkinterface:
@@ -120,15 +131,7 @@
   azure.azcollection.azure_rm_securitygroup:
     resource_group: "{{ az_resource_group }}"
     name: "{{ az_network_security_group }}"
-    rules:
-      - name: "{{ cluster_vmanage_nic.state.name }}"
-        protocol: "*"
-        destination_port_range: "*"
-        source_port_range: "*"
-        source_address_prefix: "{{ cluster_vmanage_nic.state.ip_configuration.private_ip_address }}"
-        access: Allow
-        priority: "{{ 2500 + ((az_res_gr.securitygroups | first).rules | length) + 1 }}"
-        direction: Inbound
+    rules: "{{ [inbound_rule, outbound_rule] if az_nsg_block_edgess else [inbound_rule] }}"
     tags:
       Name: "{{ az_network_security_group }}"
       Creator: "{{ az_tag_creator }}"
@@ -136,6 +139,25 @@
   when:
     - cluster_subnet is defined
     - cluster_subnet != ""
+  vars:
+    inbound_rule:
+      name: "{{ cluster_vmanage_nic.state.name }}"
+      protocol: "*"
+      destination_port_range: "*"
+      source_port_range: "*"
+      source_address_prefix: "{{ cluster_vmanage_nic.state.ip_configuration.private_ip_address }}"
+      access: Allow
+      priority: "{{ 2500 + ((az_res_gr.securitygroups | first).rules | length) + 1 }}"
+      direction: Inbound
+    outbound_rule:
+      name: "{{ cluster_vmanage_nic.state.name }}-out"
+      protocol: "*"
+      destination_port_range: "*"
+      source_port_range: "*"
+      destination_address_prefix: "{{ cluster_vmanage_nic.state.ip_configuration.private_ip_address }}"
+      access: Allow
+      priority: "{{ 2500 + ((az_res_gr.securitygroups | first).rules | length) + 1 }}"
+      direction: Outbound
 
 - name: Set az_network_interfaces_vmanage fact with a list of interfaces for vmanage
   ansible.builtin.set_fact:
@@ -212,7 +234,17 @@
     location: "{{ az_location }}"
     os_type: "Linux"
     hyper_v_generation: "V1"
-    source: "{{ az_vmanage_image_vhd_source }}"
+    source: "{{ volume_snapshots[0] if volume_snapshots else az_vmanage_image_vhd_source }}"
+
+- name: "Create an image from a VHD for vManage: {{ hostname }}-image"
+  azure.azcollection.azure_rm_manageddisk:
+    resource_group: "{{ az_resource_group }}"
+    name: "{{ hostname }}-datadisk1"
+    location: "{{ az_location }}"
+    source_uri: "{{ volume_snapshots[1] }}"
+    create_option: copy
+  when: volume_snapshots
+  register: datadisk_info
 
 - name: "Create VM for vmanage: {{ hostname }}"
   azure.azcollection.azure_rm_virtualmachine:
@@ -239,6 +271,7 @@
         disk_size_gb: 100
         managed_disk_type: Premium_LRS
         storage_container_name: "{{ hostname }}-datadisk1"
+        managed_disk_id: "{{ datadisk_info.state.id if volume_snapshots else omit }}"
     tags:
       Name: "{{ hostname }}"
       Creator: "{{ az_tag_creator }}"
