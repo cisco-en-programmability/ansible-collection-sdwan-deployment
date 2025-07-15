@@ -44,6 +44,7 @@
     description: Network interface for SD-WAN Controller
     security_groups: "{{ aws_security_group_config.group_id }}"
     region: "{{ aws_region }}"
+    private_ip_address: "{{ cluster_private_ip if subnet_item.tags.Name | regex_search('cluster') and cluster_private_ip else omit }}"
     tags:
       Name: "nic-{{ subnet_item.tags.Name }}"
       Creator: "{{ aws_tag_creator }}"
