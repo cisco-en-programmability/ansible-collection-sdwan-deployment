@@ -86,6 +86,7 @@
     site_id: "{{ instance_item.site_id }}"
     persona: "{{ instance_item.persona }}"
     volume_snapshots: "{{ instance_item.volume_snapshots | default([]) }}"
+    cluster_private_ip: "{{ instance_item.cluster_private_ip | default(omit) }}"
   loop: "{{ vmanage_instances }}"
   loop_control:
     loop_var: instance_item
