@@ -10,19 +10,38 @@
 # 2 aws_eip
 # 1 ec2 instance
 
+- name: Discover required information about network infrastructure if edge is in different zone
+  when: "'region' not in all_aws_security_group_config or 'region' not in all_aws_sunbnets_config"
+  block:
+    - name: Gather network resources information
+      ansible.builtin.include_role:
+        name: aws_network_infrastructure
+        tasks_from: aws_gather_network_resources.yml
+      vars:
+        aws_region: "{{ region }}"
+
+    - name: Set reusable infrastructure facts from discovered variables
+      ansible.builtin.set_fact:
+        all_aws_security_group_config: "{{ all_aws_security_group_config | combine({region: aws_discovered_security_group}) }}"
+        all_aws_subnets_config: "{{ all_aws_subnets_config | combine({region: aws_discovered_subnets}) }}"
+
+- name: Use information about network infrastructure from default region
+  ansible.builtin.set_fact:
+    regional_security_group_config: "{{ all_aws_security_group_config[region] }}"
+    regional_subnets_config: "{{ all_aws_subnets_config[region] }}"
 
 # NICs
 - name: Filter required subnets for instance creation. Set aws_mgmt_subnet and aws_transport_subnet facts
   ansible.builtin.set_fact:
-    aws_mgmt_subnet: "{{ aws_subnets_config | selectattr('tags.type', 'equalto', 'mgmt') | list | first }}"
-    aws_transport_subnet: "{{ aws_subnets_config | selectattr('tags.type', 'equalto', 'transport') | list | first }}"
+    aws_mgmt_subnet: "{{ regional_subnets_config | selectattr('tags.type', 'equalto', 'mgmt') | list | first }}"
+    aws_transport_subnet: "{{ regional_subnets_config | selectattr('tags.type', 'equalto', 'transport') | list | first }}"
 
 - name: Create network interfaces for cedge
   amazon.aws.ec2_eni:
     subnet_id: "{{ subnet_item.id }}"
     description: Network interface for SD-WAN Controller
-    security_groups: "{{ aws_security_group_config.group_id }}"
-    region: "{{ aws_region }}"
+    security_groups: "{{ regional_security_group_config.group_id }}"
+    region: "{{ region }}"
     tags:
       Name: "nic-{{ subnet_item.tags.Name }}"
       Creator: "{{ aws_tag_creator }}"
@@ -30,7 +49,7 @@
       VPN: "{{ subnet_item.tags.VPN }}"
       type: "{{ subnet_item.tags.type }}"
   register: network_interfaces_cedge
-  loop: "{{ aws_subnets_config }}"
+  loop: "{{ regional_subnets_config }}"
   loop_control:
     loop_var: subnet_item
     label: "nic-{{ subnet_item.tags.Name }}"
@@ -50,7 +69,7 @@
 - name: Associate EIP with mgmt network interface
   amazon.aws.ec2_eip:
     device_id: "{{ interface_item.id }}"
-    region: "{{ aws_region }}"
+    region: "{{ region }}"
     in_vpc: true
     state: present
     tags:
@@ -106,10 +125,10 @@
     count: 1
     instance_type: "{{ aws_cedge_instance_type }}"
     image:
-      id: "{{ aws_cedge_ami_id }}"
+      id: "{{ ami }}"
     state: present
     vpc_subnet_id: "{{ aws_mgmt_subnet.id }}"
-    region: "{{ aws_region }}"
+    region: "{{ region }}"
     key_name: "{{ aws_key_name | default('') | bool | ternary(aws_key_name, omit) }}"
     network:
       assign_public_ip: false
