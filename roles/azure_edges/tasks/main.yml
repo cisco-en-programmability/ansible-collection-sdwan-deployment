@@ -44,6 +44,8 @@
   ansible.builtin.set_fact:
     deployment_facts:
       deployed_edge_instances: []
+    az_default_location: "{{ az_location }}"
+    az_default_resource_group: "{{ az_resource_group }}"
 
 - name: Create VM instance - cEdge (C8000V)
   ansible.builtin.include_tasks: azure_cedge_vm.yml
@@ -54,10 +56,18 @@
     vbond: "{{ instance_item.vbond }}"
     system_ip: "{{ instance_item.system_ip }}"
     site_id: "{{ instance_item.site_id }}"
+    wan_edges_item: "{{ wan_edges | default([]) | json_query('[?uuid==`'~instance_item.uuid~'`] | [0]') }}"
+    is_in_default_location: "{{ 'az_location' not in wan_edges_item or wan_edges_item['az_location'] == az_default_location }}"
+    az_resource_group: "{{ az_default_resource_group if is_in_default_location else az_resources_prefix~'-'~wan_edges_item['az_location']~'-rg' }}"
   loop: "{{ edge_instances }}"
   loop_control:
     loop_var: instance_item
-  when: edge_instances is defined and (instance_item.hostname not in instances_info or not instances_info[instance_item.hostname])
+  when:
+    - edge_instances is defined
+    - instance_item.hostname not in instances_info or not instances_info[instance_item.hostname]
+    - >
+      wan_edges is not defined
+      or wan_edges | json_query('[?uuid==`'~instance_item['uuid']~'`] | [?!contains(keys(@), `foreign`) || !foreign]')
 
 - name: Extract deployment facts
   ansible.builtin.include_role:

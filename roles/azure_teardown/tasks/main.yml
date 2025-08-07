@@ -9,6 +9,16 @@
 - name: "Replace underscores with hyphens in the az_resources_prefix string"
   ansible.builtin.set_fact:
     az_resources_prefix: "{{ az_resources_prefix | replace('_', '-') }}"
+    az_default_location: "{{ az_location }}"
+    az_default_resource_group: "{{ az_resources_prefix }}-rg"
 
 - name: Remove Azure Resource Group and wait for teardown completion
-  ansible.builtin.include_tasks: az_teardown_rg.yml
+  ansible.builtin.include_tasks:
+    file: az_teardown_rg.yml
+    apply:
+      vars:
+        az_resource_group: "{{ az_default_resource_group if item == az_default_location else az_resources_prefix~'-'~item~'-rg' }}"
+        az_location: "{{ item }}"
+  loop: "{{ az_all_locations }}"
+  loop_control:
+    label: "{{ item }}"
