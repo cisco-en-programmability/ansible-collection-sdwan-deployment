@@ -22,5 +22,18 @@
     state: directory
     mode: "0755"
 
+- name: Save default az_location
+  ansible.builtin.set_fact:
+    az_default_location: "{{ az_location }}"
+    az_default_resource_group: "{{ az_resources_prefix }}-rg"
+
 - name: "Network resources for SD-WAN machines"
-  ansible.builtin.include_tasks: azure_network_infrastructure.yml
+  ansible.builtin.include_tasks:
+    file: azure_network_infrastructure.yml
+    apply:
+      vars:
+        az_resource_group: "{{ az_default_resource_group if item == az_default_location else az_resources_prefix~'-'~item~'-rg' }}"
+        az_location: "{{ item }}"
+  loop: "{{ az_all_locations }}"
+  loop_control:
+    label: "{{ item }}"

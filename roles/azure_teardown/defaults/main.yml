@@ -14,6 +14,7 @@ wait_for_teardown: true  # if set to false, teardown playbook will finish witout
 az_location: null
 az_tag_creator: "{{ organization_name }}"
 az_resources_prefix: "{{ organization_name }}"  # default to organization_name, but user should have option to modify
+az_all_locations: "{{ [az_location] + wan_edges | default([]) | json_query('[?az_location].az_location') | unique }}"
 
 # Resource group
 az_resource_group: "{{ az_resources_prefix }}-rg"
