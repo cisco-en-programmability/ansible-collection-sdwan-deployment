@@ -39,6 +39,7 @@ The `aws_edges` role is an essential component of the `cisco.sdwan_deployment` c
 - `aws_tag_creator`: Tag for identifying the creator of AWS resources.
 - `vbond_port`, `default_vbond_ip`: Default vBond communication settings.
 - `edge_instances`: List of edge device instances to be deployed.
+- `ipv6_strict_control`: Control if ipv6-strict-control is enabled.
 
 ### Vars (`vars/main.yml`)
 
