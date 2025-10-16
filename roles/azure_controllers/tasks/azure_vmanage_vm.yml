@@ -21,12 +21,34 @@
       VPN: "{{ subnet_item.VPN }}"
       Subnet: "{{ subnet_item.name }}"
       type: "{{ subnet_item.type }}"
+    sku: standard
   loop:
     - "{{ mgmt_subnet }}"
     - "{{ transport_subnet }}"
   loop_control:
     loop_var: subnet_item
   register: public_ip_addresses
+
+- name: "Create public IPv6 addresses for machine: {{ hostname }}"
+  azure.azcollection.azure_rm_publicipaddress:
+    resource_group: "{{ az_resource_group }}"
+    allocation_method: static
+    name: "public-ipv6-{{ hostname }}-vpn-{{ subnet_item.VPN }}"
+    tags:
+      Name: "public-ipv6-{{ hostname }}"
+      Creator: "{{ az_tag_creator }}"
+      Machine: "{{ hostname }}"
+      VPN: "{{ subnet_item.VPN }}"
+      Subnet: "{{ subnet_item.name }}"
+      type: "{{ subnet_item.type }}"
+    version: ipv6
+    sku: standard
+  loop:
+    - "{{ mgmt_subnet }}"
+    - "{{ transport_subnet }}"
+  loop_control:
+    loop_var: subnet_item
+  register: public_ipv6_addresses
 
 - name: "Get info about NSG: {{ az_network_security_group }}"
   azure.azcollection.azure_rm_securitygroup_info:
@@ -51,7 +73,7 @@
       Name: "{{ az_network_security_group }}"
       Creator: "{{ az_tag_creator }}"
       Organization: "{{ organization_name }}"
-  loop: "{{ public_ip_addresses.results }}"
+  loop: "{{ public_ip_addresses.results + public_ipv6_addresses.results }}"
   loop_control:
     loop_var: public_ip_state
     index_var: my_idx
@@ -71,6 +93,10 @@
       - name: "ipconfig-vpn-{{ public_ip_state.state.tags.VPN }}"
         public_ip_address_name: "{{ public_ip_state.state.name }}"
         private_ip_allocation_method: "Dynamic"
+      - name: "ipconfig-vpn-{{ public_ip_state.state.tags.VPN }}-ipv6"
+        public_ip_address_name: "{{ public_ipv6_addresses.results | json_query(_public_ip_query) | first }}"
+        private_ip_allocation_method: "Dynamic"
+        private_ip_address_version: IPv6
     tags:
       Name: "nic-{{ hostname }}-{{ public_ip_state.state.tags.type }}-vpn-{{ public_ip_state.state.tags.VPN }}"
       Creator: "{{ az_tag_creator }}"
@@ -85,6 +111,8 @@
   register: vmanage_nics
   when:
     - public_ip_state.state is defined
+  vars:
+    _public_ip_query: "[?to_number(state.tags.VPN)==`{{ public_ip_state.state.tags.VPN }}`].state.name"
 
 - name: "Create virtual network interface card if cluster deployment"
   azure.azcollection.azure_rm_networkinterface:
@@ -140,15 +168,22 @@
 - name: Set az_network_interfaces_vmanage fact with a list of interfaces for vmanage
   ansible.builtin.set_fact:
     az_network_interfaces_vmanage: "{{ (vmanage_nics.results + [cluster_vmanage_nic]) | selectattr('state', 'defined') | map(attribute='state') | list }}"
-    az_public_ip_addresses_vmanage: "{{ public_ip_addresses.results | selectattr('state', 'defined') | map(attribute='state') | list }}"
+    az_public_ip_addresses_vmanage: "{{ _public_ip_addresses | selectattr('state', 'defined') | map(attribute='state') | list }}"
+  vars:
+    _public_ip_addresses: "{{ public_ip_addresses.results + public_ipv6_addresses.results }}"
 
 - name: Filter az_network_interfaces_vmanage for instance creation. Set az_mgmt_nic and az_transport_nic facts
   ansible.builtin.set_fact:
     az_mgmt_nic: "{{ az_network_interfaces_vmanage | selectattr('tags.type', 'equalto', 'mgmt') | list | first }}"
     az_transport_nic: "{{ az_network_interfaces_vmanage | selectattr('tags.type', 'equalto', 'transport') | list | first }}"
     az_cluster_nic: "{{ az_network_interfaces_vmanage | selectattr('tags.type', 'equalto', 'cluster') | list | first | default(omit) }}"
-    az_mgmt_public_ip: "{{ az_public_ip_addresses_vmanage | selectattr('tags.type', 'equalto', 'mgmt') | list | first }}"
-    az_transport_public_ip: "{{ az_public_ip_addresses_vmanage | selectattr('tags.type', 'equalto', 'transport') | list | first }}"
+    az_mgmt_public_ip: "{{ _mgmt_public_ips | selectattr('public_ip_address_version', 'equalto', 'ipv4') | list | first }}"
+    az_transport_public_ip: "{{ _transport_public_ips | selectattr('public_ip_address_version', 'equalto', 'ipv4') | list | first }}"
+    az_mgmt_public_ipv6: "{{ _mgmt_public_ips | selectattr('public_ip_address_version', 'equalto', 'ipv6') | list | first }}"
+    az_transport_public_ipv6: "{{ _transport_public_ips | selectattr('public_ip_address_version', 'equalto', 'ipv6') | list | first }}"
+  vars:
+    _mgmt_public_ips: "{{ az_public_ip_addresses_vmanage | selectattr('tags.VPN', 'equalto', '512') }}"
+    _transport_public_ips: "{{ az_public_ip_addresses_vmanage | selectattr('tags.VPN', 'equalto', '0') }}"
 
 - name: Prepare nics_ids_list variable for VM creation
   ansible.builtin.set_fact:
@@ -169,11 +204,18 @@
 
 - name: "Set vmanage facts"
   ansible.builtin.set_fact:
-    vmanage_mgmt_private_ip: "{{ az_mgmt_nic.ip_configuration.private_ip_address }}"
-    vmanage_transport_private_ip: "{{ az_transport_nic.ip_configuration.private_ip_address }}"
+    vmanage_mgmt_private_ip: "{{ (az_mgmt_nic.ip_configurations | json_query(_ipv4_query) | first).private_ip_address }}"
+    vmanage_mgmt_private_ipv6: "{{ (az_mgmt_nic.ip_configurations | json_query(_ipv6_query) | first).private_ip_address }}"
+    vmanage_transport_private_ip: "{{ (az_transport_nic.ip_configurations | json_query(_ipv4_query) | first).private_ip_address }}"
+    vmanage_transport_private_ipv6: "{{ (az_transport_nic.ip_configurations | json_query(_ipv6_query) | first).private_ip_address }}"
     vmanage_mgmt_public_ip: "{{ az_mgmt_public_ip.ip_address }}"
     vmanage_transport_public_ip: "{{ az_transport_public_ip.ip_address }}"
+    vmanage_mgmt_public_ipv6: "{{ az_mgmt_public_ipv6.ip_address }}"
+    vmanage_transport_public_ipv6: "{{ az_transport_public_ipv6.ip_address }}"
     vmanage_persona: "{{ persona | default(vmanage_default_persona) }}"
+  vars:
+    _ipv4_query: "[?private_ip_address_version==`IPv4`]"
+    _ipv6_query: "[?private_ip_address_version==`IPv6`]"
 
 - name: "Set vmanage cluster related facts"
   ansible.builtin.set_fact:
@@ -185,7 +227,7 @@
 
 - name: "Set vpn0_default_gateway fact from VPN 0 subnet value"
   ansible.builtin.set_fact:
-    vpn0_default_gateway: "{{ subnet.cidr | ansible.utils.ipaddr('1') | ansible.utils.ipaddr('address') }}"
+    vpn0_default_gateway: "{{ subnet.cidr[0] | ansible.utils.ipaddr('1') | ansible.utils.ipaddr('address') }}"
   loop: "{{ az_subnets }}"
   loop_control:
     loop_var: subnet
@@ -254,6 +296,8 @@
       admin_password: "{{ admin_password }}"
       mgmt_public_ip: "{{ vmanage_mgmt_public_ip }}"
       transport_public_ip: "{{ vmanage_transport_public_ip }}"
+      mgmt_public_ipv6: "{{ vmanage_mgmt_public_ipv6 }}"
+      transport_public_ipv6: "{{ vmanage_transport_public_ipv6 }}"
       cluster_private_ip: "{{ vmanage_cluster_private_ip | default(omit) }}"
       persona: "{{ vmanage_persona }}"
   changed_when: true
