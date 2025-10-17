@@ -11,3 +11,4 @@ required_variables:
   aws_security_group_config: "{{ aws_security_group_config }}"
   aws_subnets_config: "{{ aws_subnets_config }}"
   aws_cedge_ami_id: "{{ aws_cedge_ami_id }}"
+all_aws_regions: "{{ [aws_region] + wan_edges | default([]) | json_query('[?aws_region].aws_region') | unique }}"

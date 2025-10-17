@@ -34,3 +34,14 @@
   loop: "{{ all_aws_regions }}"
   loop_control:
     label: "{{ item }}"
+
+- name: Create network infrastructure on AWS for each tenant
+  ansible.builtin.include_tasks:
+    file: aws_create_network_infrastructure.yml
+    apply:
+      vars:
+        aws_resources_prefix: "{{ item.org_name }}"
+  loop: "{{ tenants }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: tenants is defined and tenants | length > 0
