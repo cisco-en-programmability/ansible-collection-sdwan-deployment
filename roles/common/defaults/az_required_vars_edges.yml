@@ -15,3 +15,5 @@ required_variables:
   az_cedge_image_version: "{{ az_cedge_image_version }}"
   admin_username: "{{ admin_username }}"
   admin_password: "{{ admin_password }}"
+
+az_all_locations: "{{ [az_location] + wan_edges | default([]) | json_query('[?az_location].az_location') | unique }}"

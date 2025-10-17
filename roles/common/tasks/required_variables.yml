@@ -21,3 +21,10 @@
     loop_var: variable
     label: "{{ variable.key }}"
   when: required_variables is defined # and required_variables | length > 0
+
+- name: Assert that multi tenancy and multiple AWS regions are not in use simultaneously
+  ansible.builtin.assert:
+    that:
+      - aws_region is not defined or tenants is not defined or tenants | length == 0 or all_aws_regions | length == 1
+      - az_location is not defined or tenants is not defined or tenants | length == 0 or az_all_locations | length == 1
+    fail_msg: "Using multi tenancy and multiple AWS regions at the same time is not supported yet"

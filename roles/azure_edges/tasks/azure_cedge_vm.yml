@@ -222,6 +222,8 @@
       service_interfaces: "{{ service_interfaces | default(omit) }}"
       uuid: "{{ uuid }}"
       site_id: "{{ site_id }}"
+      tenant_org_name: "{{ tenant_org_name }}"
+      tenant_subdomain: "{{ tenant_subdomain }}"
   changed_when: true
   notify: Show deployment_facts
 

@@ -37,3 +37,14 @@
   loop: "{{ az_all_locations }}"
   loop_control:
     label: "{{ item }}"
+
+- name: "Network resources for SD-WAN tenants"
+  ansible.builtin.include_tasks:
+    file: azure_network_infrastructure.yml
+    apply:
+      vars:
+        az_resource_group: "{{ item.org_name }}-rg"
+  loop: "{{ tenants }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: tenants is defined and tenants | length > 0
