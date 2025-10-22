@@ -33,9 +33,11 @@
 - name: Cache network infrastructure information for default AWS region
   ansible.builtin.set_fact:
     all_aws_security_group_config:
-      "{{ aws_region }}": "{{ aws_discovered_security_group }}"
+      "{{ aws_region }}":
+        "{{ organization_name }}": "{{ aws_discovered_security_group }}"
     all_aws_subnets_config:
-      "{{ aws_region }}": "{{ aws_discovered_subnets }}"
+      "{{ aws_region }}":
+        "{{ organization_name }}": "{{ aws_discovered_subnets }}"
     default_aws_region: "{{ aws_region }}"
 
 - name: Assert all required variables for AWS edges deployment
@@ -74,6 +76,8 @@
     wan_edges_item: "{{ wan_edges | default([]) | json_query('[?uuid==`'~instance_item.uuid~'`] | [0]') }}"
     region: "{{ wan_edges_item.aws_region | default(default_aws_region) }}"
     ami: "{{ wan_edges_item.aws_cedge_ami_id | default(aws_cedge_ami_id) }}"
+    tenant_org_name: "{{ instance_item.tenant_org_name | default(organization_name) }}"
+    tenant_subdomain: "{{ instance_item.tenant_subdomain | default('') }}"
   loop: "{{ edge_instances }}"
   loop_control:
     loop_var: instance_item

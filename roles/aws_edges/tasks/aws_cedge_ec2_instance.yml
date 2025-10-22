@@ -11,7 +11,11 @@
 # 1 ec2 instance
 
 - name: Discover required information about network infrastructure if edge is in different zone
-  when: "'region' not in all_aws_security_group_config or 'region' not in all_aws_sunbnets_config"
+  when: >
+    region not in all_aws_security_group_config
+    or region not in all_aws_subnets_config
+    or tenant_org_name not in all_aws_security_group_config[region]
+    or tenant_org_name not in all_aws_subnets_config[region]
   block:
     - name: Gather network resources information
       ansible.builtin.include_role:
@@ -19,16 +23,17 @@
         tasks_from: aws_gather_network_resources.yml
       vars:
         aws_region: "{{ region }}"
+        aws_resources_prefix: "{{ tenant_org_name }}"
 
     - name: Set reusable infrastructure facts from discovered variables
       ansible.builtin.set_fact:
-        all_aws_security_group_config: "{{ all_aws_security_group_config | combine({region: aws_discovered_security_group}) }}"
-        all_aws_subnets_config: "{{ all_aws_subnets_config | combine({region: aws_discovered_subnets}) }}"
+        all_aws_security_group_config: "{{ all_aws_security_group_config | combine({region: {tenant_org_name: aws_discovered_security_group}}) }}"
+        all_aws_subnets_config: "{{ all_aws_subnets_config | combine({region: {tenant_org_name: aws_discovered_subnets}}) }}"
 
 - name: Use information about network infrastructure from default region
   ansible.builtin.set_fact:
-    regional_security_group_config: "{{ all_aws_security_group_config[region] }}"
-    regional_subnets_config: "{{ all_aws_subnets_config[region] }}"
+    regional_security_group_config: "{{ all_aws_security_group_config[region][tenant_org_name] }}"
+    regional_subnets_config: "{{ all_aws_subnets_config[region][tenant_org_name] }}"
 
 # NICs
 - name: Filter required subnets for instance creation. Set aws_mgmt_subnet and aws_transport_subnet facts
@@ -170,6 +175,8 @@
       service_interfaces: "{{ service_interfaces | default(omit) }}"
       uuid: "{{ uuid }}"
       site_id: "{{ site_id }}"
+      tenant_org_name: "{{ tenant_org_name }}"
+      tenant_subdomain: "{{ tenant_subdomain }}"
   changed_when: true
   register: _edge_facts
   retries: 3
@@ -196,7 +203,7 @@
 
 - name: Allow traffic outside VPC for cEdge IP addresses
   amazon.aws.ec2_security_group:
-    name: "{{ aws_discovered_security_group.group_name }}"
+    name: "{{ aws_security_group_config.group_name }}"
     description: "Security Group for SD-WAN instances"
     vpc_id: "{{ aws_vpc_config.id }}"
     region: "{{ aws_region }}"

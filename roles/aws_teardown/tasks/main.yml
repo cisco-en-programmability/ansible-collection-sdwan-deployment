@@ -46,6 +46,31 @@
     label: "{{ _vpc._region }}"
     loop_var: _vpc
 
+- name: Retrieve VPC details of tenants  # noqa: syntax-check[unknown-module]
+  amazon.aws.ec2_vpc_net_info:  # noqa: syntax-check[unknown-module]
+    region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ aws_vpc_name }}"
+      "tag:Creator": "{{ aws_tag_creator }}"
+  register: vpc_info
+  loop: "{{ tenants | default([]) }}"
+  loop_control:
+    label: "{{ _tenant.org_name }}"
+    loop_var: _tenant
+  vars:
+    aws_resources_prefix: "{{ _tenant.org_name }}"
+
+- name: Add tenant vpcs to vpc list
+  check_mode: false
+  ansible.builtin.set_fact:
+    aws_vpc_region: "{{ aws_vpc_region | default([]) + [{'vpc_id': _vpc.vpcs[0].id, 'region': aws_region}] }}"
+  loop:
+    "{{ vpc_info.results }}"
+  when: _vpc.vpcs
+  loop_control:
+    label: "{{ _vpc._tenant.org_name }}"
+    loop_var: _vpc
+
 #######################    Teardown    #######################
 
 - name: Stop and terminate specific ec2 instances and their NICs and EIPs

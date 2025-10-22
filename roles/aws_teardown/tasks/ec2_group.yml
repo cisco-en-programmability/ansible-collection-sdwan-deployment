@@ -7,7 +7,7 @@
   amazon.aws.ec2_security_group_info:
     filters:
       vpc-id: "{{ aws_vpc_id }}"
-      "tag:Name": "{{ aws_security_group_name }}"
+      "tag:Creator": "{{ aws_tag_creator }}"
     region: "{{ aws_region }}"
   register: security_groups_info
 

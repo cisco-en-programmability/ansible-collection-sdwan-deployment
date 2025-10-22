@@ -7,3 +7,4 @@ required_variables:
   organization_name: "{{ organization_name }}"
   aws_region: "{{ aws_region }}"
   aws_allowed_subnets: "{{ aws_allowed_subnets }}"
+all_aws_regions: "{{ [aws_region] + wan_edges | default([]) | json_query('[?aws_region].aws_region') | unique }}"
