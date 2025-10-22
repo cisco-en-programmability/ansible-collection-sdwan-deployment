@@ -46,6 +46,7 @@ Variables with default values that can be overridden by the user:
 - `vbond_port`, `default_vbond_ip`: Default configurations for vBond.
 - `az_cedge_vm_size`: Default Azure VM size for cEdge instances.
 - `edge_instances`: List of cEdge instance configurations. If not provided, instances will be created based on PnP Portal information.
+- `ipv6_strict_control`: Control if ipv6-strict-control is enabled.
 
 ### Vars (`vars/main.yml`)
 
