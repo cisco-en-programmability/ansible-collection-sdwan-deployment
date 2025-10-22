@@ -8,3 +8,5 @@ required_variables:
   az_location: "{{ az_location }}"
   az_subnets: "{{ az_subnets }}"
   az_allowed_subnets: "{{ az_allowed_subnets }}"
+
+az_all_locations: "{{ [az_location] + wan_edges | default([]) | json_query('[?az_location].az_location') | unique }}"

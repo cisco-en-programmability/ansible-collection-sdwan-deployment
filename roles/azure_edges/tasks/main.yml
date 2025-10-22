@@ -57,8 +57,10 @@
     system_ip: "{{ instance_item.system_ip }}"
     site_id: "{{ instance_item.site_id }}"
     wan_edges_item: "{{ wan_edges | default([]) | json_query('[?uuid==`'~instance_item.uuid~'`] | [0]') }}"
+    tenant_org_name: "{{ instance_item.tenant_org_name | default(organization_name) }}"
+    tenant_subdomain: "{{ instance_item.tenant_subdomain | default('') }}"
     is_in_default_location: "{{ 'az_location' not in wan_edges_item or wan_edges_item['az_location'] == az_default_location }}"
-    az_resource_group: "{{ az_default_resource_group if is_in_default_location else az_resources_prefix~'-'~wan_edges_item['az_location']~'-rg' }}"
+    az_resource_group: "{{ tenant_org_name~'-rg' if is_in_default_location else az_resources_prefix~'-'~wan_edges_item['az_location']~'-rg' }}"
   loop: "{{ edge_instances }}"
   loop_control:
     loop_var: instance_item

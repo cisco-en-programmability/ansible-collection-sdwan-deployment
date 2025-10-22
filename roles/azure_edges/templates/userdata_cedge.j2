@@ -19,7 +19,7 @@ ca-certs:
   remove-defaults: false
   trusted:
   - |
-   {{ enterprise_root_ca | indent(3) }}
+   {{ lookup('file', enterprise_ca_cert_path | default(results_dir~'/certificates/ca.crt')) | indent(3) }}
 {% endif %}
 
 
@@ -44,7 +44,7 @@ Content-Disposition: attachment; filename="config-{{ uuid }}.txt"
    control-session-pps   300
    admin-tech-on-failure
    sp-organization-name  "{{ organization_name }}"
-   organization-name     "{{ organization_name }}"
+   organization-name     "{{ tenant_org_name }}"
    port-hop
    track-transport
    track-default-gateway
