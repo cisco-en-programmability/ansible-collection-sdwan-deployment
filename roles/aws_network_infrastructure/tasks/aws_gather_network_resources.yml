@@ -61,3 +61,12 @@
 - name: Set security_group fact
   ansible.builtin.set_fact:
     aws_discovered_security_group: "{{ security_groups_info.security_groups[0] }}"
+
+- name: Gather information about all hosted zones
+  amazon.aws.route53_info:
+    query: hosted_zone
+  register: all_hosted_zones
+
+- name: Set hosted zones fact
+  ansible.builtin.set_fact:
+    aws_hosted_zone: "{{ all_hosted_zones.hosted_zones | json_query('[?config.comment==`'~aws_discovered_vpc.id~'`]') | first }}"

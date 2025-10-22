@@ -56,6 +56,7 @@ aws_route_table_name: "{{ aws_resources_prefix }}-rtab"
 
 # SECURITY GROUPs
 aws_security_group_name: "{{ aws_resources_prefix }}-sg"
+aws_dns_zone_name: "{{ aws_resources_prefix }}.internal"
 aws_vpn_name: "{{ aws_resources_prefix }}-vpn"
 aws_eip_name: "{{ aws_resources_prefix }}-eip"
 aws_nacl_name: "{{ aws_resources_prefix }}-nacl"

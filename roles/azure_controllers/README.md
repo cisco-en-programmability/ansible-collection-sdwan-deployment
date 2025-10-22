@@ -47,6 +47,7 @@ The `azure_controllers` role automates the deployment of Cisco SD-WAN controller
 - `az_vmanage_vm_size`, `az_vbond_vm_size`, `az_vsmart_vm_size`: Azure VM sizes for vManage, vBond, and vSmart instances.
 - `site_id_vmanage`, `site_id_vbond`, `site_id_vsmart`: Default site IDs for vManage, vBond, and vSmart instances.
 - `vmanage_instances`, `vbond_instances`, `vsmart_instances`: Lists for instance configurations.
+- `ipv6_strict_control`: Control if ipv6-strict-control is enabled.
 
 ### Vars (`vars/main.yml`)
 

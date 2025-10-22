@@ -12,6 +12,7 @@
     _additional:
       organization_name: "{{ organization_name }}"
       vbond_transport_public_ip: "{{ vbond_transport_public_ip | default('null', true) }}"
+      vbond_transport_hostname: "vbond.{{ organization_name }}.internal"
 
 - name: Update deployment facts with additional variables
   ansible.builtin.set_fact:

@@ -52,7 +52,8 @@ Content-Disposition: attachment; filename="config-{{ uuid }}.txt"
    config-template-name  Default_Azure_vWAN_C8000V_Template_V01
    no on-demand enable
    on-demand idle-timeout 10
-   vbond {{ vbond }} port {{ vbond_port }}
+   vbond {{ vbond_transport_hostname }} port {{ vbond_port }}
+   ipv6-strict-control {{ ipv6_strict_control | lower }}
   !
   bfd color lte
    hello-interval 1000
@@ -186,6 +187,10 @@ Content-Disposition: attachment; filename="config-{{ uuid }}.txt"
    no shutdown
    arp timeout 1200
    ip address dhcp client-id GigabitEthernet1
+   ipv6 address dhcp
+   ipv6 enable
+   ipv6 nd autoconfig prefix
+   ipv6 nd autoconfig default-route
    no ip redirects
    ip dhcp client default-router distance 1
    ip mtu    1500
@@ -197,6 +202,10 @@ Content-Disposition: attachment; filename="config-{{ uuid }}.txt"
    no shutdown
    arp timeout 1200
    ip address dhcp client-id GigabitEthernet2
+   ipv6 address dhcp
+   ipv6 enable
+   ipv6 nd autoconfig prefix
+   ipv6 nd autoconfig default-route
    no ip redirects
    ip dhcp client default-router distance 1
    ip mtu    1500
@@ -208,6 +217,7 @@ Content-Disposition: attachment; filename="config-{{ uuid }}.txt"
    no shutdown
    ip unnumbered GigabitEthernet1
    no ip redirects
+   ipv6 enable
    ipv6 unnumbered GigabitEthernet1
    no ipv6 redirects
    tunnel source GigabitEthernet1

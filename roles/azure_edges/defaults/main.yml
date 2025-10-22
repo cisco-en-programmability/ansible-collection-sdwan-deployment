@@ -63,6 +63,7 @@ admin_password: example_password  # pragma: allowlist secret
 admin_ssh_keys: []
 vbond_port: 12346
 default_vbond_ip: 192.168.1.199
+ipv6_strict_control: true
 # vpn0_interface_color: default
 
 ################################

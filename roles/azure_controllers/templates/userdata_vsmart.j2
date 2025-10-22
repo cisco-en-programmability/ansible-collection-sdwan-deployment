@@ -27,7 +27,7 @@ write_files:
         <sp-organization-name>{{ organization_name }}</sp-organization-name>
         <site-id>{{ site_id }}</site-id>
         <vbond>
-          <remote>{{ vbond_transport_public_ip | default(default_vbond_ip) }}</remote>
+          <remote>{{ az_vbond_address }}</remote>
         </vbond>
         <aaa>
           <user>
@@ -35,6 +35,8 @@ write_files:
             <password>{{ admin_password }}</password>
           </user>
         </aaa>
+        <ipv6-strict-control>{{ ipv6_strict_control | lower }}</ipv6-strict-control>
+        <ipv6-ula>true</ipv6-ula>
       </system>
       <vpn xmlns="http://viptela.com/vpn">
         <vpn-instance>
@@ -44,6 +46,9 @@ write_files:
               <ip>
                 <dhcp-client>true</dhcp-client>
               </ip>
+              <ipv6>
+                <dhcp-client>true</dhcp-client>
+              </ipv6>
               <tunnel-interface>
                 <encapsulation>
                   <encap>ipsec</encap>
@@ -74,6 +79,9 @@ write_files:
             <ip>
               <dhcp-client>true</dhcp-client>
             </ip>
+            <ipv6>
+              <dhcp-client>true</dhcp-client>
+            </ipv6>
             <shutdown>false</shutdown>
           </interface>
         </vpn-instance>

@@ -149,6 +149,18 @@
     aws_region: "{{ _vpc_region.region }}"
     aws_vpc_id: "{{ _vpc_region.vpc_id }}"
 
+# hosted zones
+- name: Remove all hosted dns zones
+  when: not teardown_specific_instances
+  ansible.builtin.include_tasks: ec2_vpc_hosted_zones.yml
+  loop: "{{ aws_vpc_region }}"
+  loop_control:
+    label: "{{ _vpc_region.region }}"
+    loop_var: _vpc_region
+  vars:
+    aws_region: "{{ _vpc_region.region }}"
+    aws_vpc_id: "{{ _vpc_region.vpc_id }}"
+
 # vpc
 - name: Remove VPC
   when: not teardown_specific_instances
