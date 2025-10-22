@@ -30,6 +30,7 @@ admin_password: null  # pragma: allowlist secret
 admin_ssh_keys: []
 vbond_port: 12346
 default_vbond_ip: 192.168.1.199  # default ips from official Cisco guides
+ipv6_strict_control: true
 # vpn0_interface_color: default
 
 
@@ -49,6 +50,7 @@ vmanage_instances: []
 # vBond
 aws_vbond_ami_id: null
 aws_vbond_instance_type: "c5.large"
+vbond_transport_hostname: "vbond.{{ aws_resources_prefix }}.internal"
 
 site_id_vbond: 200
 

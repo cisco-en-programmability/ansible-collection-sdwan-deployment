@@ -17,6 +17,7 @@
   amazon.aws.ec2_vpc_net:
     name: "{{ aws_vpc_name }}"
     cidr_block: "{{ aws_vpc_cidr }}"
+    ipv6_cidr: true
     region: "{{ aws_region }}"
     tags:
       Name: "{{ aws_vpc_name }}"
@@ -65,6 +66,8 @@
     cidr: "{{ subnet_config.subnet_cidr }}"
     map_public: "{{ subnet_config.type in ['mgmt', 'transport'] }}"
     region: "{{ aws_region }}"
+    assign_instances_ipv6: true
+    ipv6_cidr: "{{ (_created_vpc.vpc.ipv6_cidr_block_association_set | first).ipv6_cidr_block | ansible.utils.ipsubnet(64, subnet_idx + 1) }}"
     tags:
       Name: "{{ subnet_config.name }}"
       Creator: "{{ aws_tag_creator }}"
@@ -74,6 +77,7 @@
   loop: "{{ aws_subnets }}"
   loop_control:
     loop_var: subnet_config
+    index_var: subnet_idx
 
 - name: Set subnets facts
   ansible.builtin.set_fact:
@@ -178,4 +182,26 @@
     dest: "{{ aws_deployed_network_data }}"
     marker: "\n--------------    aws_security_group    --------------\n"
     content: "{{ _created_security_group | to_nice_yaml }}"
+  changed_when: false
+
+- name: Create a private DNS zone
+  amazon.aws.route53_zone:
+    zone: "{{ aws_dns_zone_name }}"
+    vpc_id: "{{ _created_vpc.vpc.id }}"
+    vpc_region: "{{ aws_region }}"
+    comment: "{{ _created_vpc.vpc.id }}"
+    tags:
+      Name: "{{ aws_dns_zone_name }}"
+      Creator: "{{ aws_tag_creator }}"
+  register: _created_dns_zone
+
+- name: Copy route53 resources information to log file
+  ansible.builtin.blockinfile:
+    create: true
+    state: present
+    mode: "0644"
+    insertafter: EOF
+    dest: "{{ aws_deployed_network_data }}"
+    marker: "\n--------------    aws_dns_zone    --------------\n"
+    content: "{{ _created_dns_zone | to_nice_yaml }}"
   changed_when: false

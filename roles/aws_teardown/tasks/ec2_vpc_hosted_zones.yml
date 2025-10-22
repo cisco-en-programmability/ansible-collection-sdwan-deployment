@@ -1,0 +1,41 @@
+# Copyright 2024 Cisco Systems, Inc. and its affiliates
+# GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+
+# Hosted zones
+- name: Gather information about all hosted zones
+  amazon.aws.route53_info:
+    query: hosted_zone
+  register: all_hosted_zones
+
+- name: Delete found hosted zone
+  when: all_hosted_zones.hosted_zones | json_query('[?config.comment==`'~aws_vpc_id~'`]')
+  block:
+    - name: Set hosted zones fact
+      ansible.builtin.set_fact:
+        aws_hosted_zone: "{{ all_hosted_zones.hosted_zones | json_query('[?config.comment==`'~aws_vpc_id~'`]') | first }}"
+
+    - name: Gather records from hosted zone
+      amazon.aws.route53_info:
+        hosted_zone_id: "{{ aws_hosted_zone.id }}"
+        query: record_sets
+      register: aws_hosted_zone_records
+
+    - name: Delete records in hosted zone
+      amazon.aws.route53:
+        state: absent
+        hosted_zone_id: "{{ aws_hosted_zone.id }}"
+        record: "{{ record_item.name }}"
+        type: "{{ record_item.type }}"
+      loop: "{{ aws_hosted_zone_records.resource_record_sets }}"
+      loop_control:
+        loop_var: record_item
+        label: "{{ record_item.name }}"
+      when: record_item.type not in ('NS', 'SOA')
+
+    - name: Delete hosted zone
+      amazon.aws.route53_zone:
+        zone: "{{ aws_dns_zone_name }}"
+        vpc_id: "{{ aws_vpc_id }}"
+        vpc_region: "{{ aws_region }}"
+        state: absent

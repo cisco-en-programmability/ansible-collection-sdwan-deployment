@@ -130,12 +130,17 @@
       admin_password: "{{ admin_password }}"
       mgmt_public_ip: "{{ eip_vbond.results[0].public_ip }}"
       transport_public_ip: "{{ eip_vbond.results[1].public_ip }}"
+      mgmt_public_ipv6: "{{ _created_mgmt_nic.ipv6_addresses[0].ipv6_address }}"
+      transport_public_ipv6: "{{ _created_transport_nic.ipv6_addresses[0].ipv6_address }}"
   changed_when: true
   notify: Show deployment_facts
   register: _vbond_facts
   retries: 3
   delay: 5
   until: _vbond_facts is succeeded
+  vars:
+    _created_mgmt_nic: "{{ ec2_vbond.instances[0].network_interfaces | json_query('[?subnet_id==`'~aws_mgmt_subnet.id~'`]') | first }}"
+    _created_transport_nic: "{{ ec2_vbond.instances[0].network_interfaces | json_query('[?subnet_id==`'~aws_transport_subnet.id~'`]') | first }}"
 
 - name: Update deployment facts - vBond - that will be consumed by vManage-client in Ansible
   ansible.builtin.set_fact:
@@ -170,8 +175,29 @@
       - proto: all
         cidr_ip: "{{ eip_vbond.results[1].public_ip }}/32"
         rule_desc: "{{ hostname }} - transport (VPN 0)"
+      - proto: all
+        cidr_ipv6: "{{ instance.mgmt_public_ipv6 }}/128"
+        rule_desc: "{{ hostname }} - mgmt IPv6 (VPN 512)"
+      - proto: all
+        cidr_ipv6: "{{ instance.transport_public_ipv6 }}/128"
+        rule_desc: "{{ hostname }} - transport IPv6 (VPN 0)"
     rules_egress: []
   register: allow_traffic
   retries: 3
   delay: 3
   until: allow_traffic is succeeded
+
+- name: Create record in internal DNS zone
+  amazon.aws.route53:
+    state: present
+    hosted_zone_id: "{{ aws_hosted_zone.id }}"
+    record: "{{ vbond_transport_hostname }}"
+    type: "{{ item.type }}"
+    ttl: 300
+    value: "{{ item.value }}"
+    wait: true
+  loop:
+    - type: A
+      value: "{{ instance.transport_public_ip }}"
+    - type: AAAA
+      value: "{{ instance.transport_public_ipv6 }}"

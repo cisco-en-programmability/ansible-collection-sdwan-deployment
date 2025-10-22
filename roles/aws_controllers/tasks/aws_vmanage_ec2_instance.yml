@@ -149,6 +149,8 @@
       mgmt_public_ip: "{{ eip_vmanage.results[0].public_ip }}"
       transport_public_ip: "{{ eip_vmanage.results[1].public_ip }}"
       cluster_private_ip: "{{ aws_cluster_nic.private_ip_address | default(omit) }}"
+      mgmt_public_ipv6: "{{ _created_mgmt_nic.ipv6_addresses[0].ipv6_address }}"
+      transport_public_ipv6: "{{ _created_transport_nic.ipv6_addresses[0].ipv6_address }}"
       persona: "{{ vmanage_persona }}"
   changed_when: true
   notify: Show deployment_facts
@@ -156,6 +158,9 @@
   retries: 3
   delay: 5
   until: _vmanage_facts is succeeded
+  vars:
+    _created_mgmt_nic: "{{ ec2_vmanage.instances[0].network_interfaces | json_query('[?subnet_id==`'~aws_mgmt_subnet.id~'`]') | first }}"
+    _created_transport_nic: "{{ ec2_vmanage.instances[0].network_interfaces | json_query('[?subnet_id==`'~aws_transport_subnet.id~'`]') | first }}"
 
 - name: Update deployment facts - vManage - that will be consumed by vManage-client in Ansible
   ansible.builtin.set_fact:
@@ -183,6 +188,12 @@
       - proto: all
         cidr_ip: "{{ eip_vmanage.results[1].public_ip }}/32"
         rule_desc: "{{ hostname }} - transport (VPN 0)"
+      - proto: all
+        cidr_ipv6: "{{ instance.mgmt_public_ipv6 }}/128"
+        rule_desc: "{{ hostname }} - mgmt IPv6 (VPN 512)"
+      - proto: all
+        cidr_ipv6: "{{ instance.transport_public_ipv6 }}/128"
+        rule_desc: "{{ hostname }} - transport IPv6 (VPN 0)"
 
 - name: Update security group rules to handle cluster traffic
   ansible.builtin.set_fact:
