@@ -21,3 +21,4 @@ all_aws_regions: "{{ [aws_region] + wan_edges | default([]) | json_query('[?aws_
 
 aws_vpc_name: "{{ aws_resources_prefix }}-vpc"
 aws_security_group_name: "{{ aws_resources_prefix }}-sg"
+aws_dns_zone_name: "{{ aws_resources_prefix }}.internal"

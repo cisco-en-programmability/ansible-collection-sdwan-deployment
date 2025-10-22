@@ -79,3 +79,20 @@
       Name: "{{ az_network_security_group }}"
       Creator: "{{ az_tag_creator }}"
       Organization: "{{ organization_name }}"
+
+- name: Create a private DNS zone
+  azure.azcollection.azure_rm_privatednszone:
+    resource_group: "{{ az_resource_group }}"
+    name: "{{ az_private_dns_zone }}"
+    tags:
+      Name: "{{ az_virtual_network }}"
+      Creator: "{{ az_tag_creator }}"
+      Organization: "{{ organization_name }}"
+
+- name: Create a virtual network link
+  azure.azcollection.azure_rm_privatednszonelink:
+    resource_group: "{{ az_resource_group }}"
+    name: "{{ az_private_network_link }}"
+    zone_name: "{{ az_private_dns_zone }}"
+    virtual_network: "{{ az_virtual_network }}"
+    state: present

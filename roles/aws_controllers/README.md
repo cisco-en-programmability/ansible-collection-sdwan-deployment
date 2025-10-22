@@ -38,6 +38,7 @@ The `aws_controllers` role automates the deployment of Cisco SD-WAN controllers 
 - `aws_tag_creator`: Tag used to mark resources created in AWS.
 - `vbond_port`, `default_vbond_ip`: Default port and IP for vBond.
 - `site_id_vmanage`, `site_id_vbond`, `site_id_vsmart`: Default site IDs for each controller.
+- `ipv6_strict_control`: Control if ipv6-strict-control is enabled.
 
 ### Vars (`vars/main.yml`)
 

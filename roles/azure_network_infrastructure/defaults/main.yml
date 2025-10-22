@@ -19,28 +19,38 @@ az_resource_group: "{{ az_resources_prefix }}-rg"
 
 # Virtual Network
 az_virtual_network: "{{ az_resources_prefix }}-vn"
-az_vn_address_prefixes_cidr: 10.0.0.0/16
+az_vn_address_prefixes_cidr:
+  - 10.0.0.0/16
+  - "fd00::/48"
 
 # Subnets
 az_subnets: |
   {% filter from_yaml %}
   - name: "{{ az_resources_prefix }}-mgmt-subnet-512"
-    cidr: "10.0.1.0/24"
+    cidr:
+      - "10.0.1.0/24"
+      - "fd00:0:0:1::/64"
     VPN: 512
     type: mgmt
   - name: "{{ az_resources_prefix }}-transport-subnet-0"
-    cidr: "10.0.2.0/24"
+    cidr:
+      - "10.0.2.0/24"
+      - "fd00:0:0:2::/64"
     VPN: 0
     type: transport
   {% if vmanage_instances is defined and vmanage_instances | length > 2 %}
   - name: "{{ az_resources_prefix }}-cluster-subnet-0"
-    cidr: "10.0.3.0/24"
+    cidr:
+      - "10.0.3.0/24"
+      - "fd00:0:0:3::/64"
     VPN: 0
     type: cluster
   {% endif %}
   {% if ux20_deployment is defined and ux20_deployment == true %}
   - name: "{{ az_resources_prefix }}-service-subnet-10"
-    cidr: "10.0.4.0/24"  # default ips from official Cisco guides
+    cidr:
+      - "10.0.4.0/24"  # default ips from official Cisco guides
+      - "fd00:0:0:4::/64"
     VPN: 10
     type: service
   {% endif %}
@@ -48,6 +58,11 @@ az_subnets: |
 
 # Security group
 az_network_security_group: "{{ az_resources_prefix }}-nsg"
+
+
+# Private DNS zone
+az_private_dns_zone: "{{ az_resources_prefix }}.internal"
+az_private_network_link: "{{ az_resources_prefix }}-pnl"
 
 
 # VPN subnets from which we can connect to Azure EIPs (Network Security Group config)

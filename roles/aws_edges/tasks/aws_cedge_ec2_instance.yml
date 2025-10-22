@@ -98,8 +98,6 @@
     src: ./bootstrap_cedge.j2
     dest: "{{ userdata_cedge_templated }}"
     mode: "0644"
-  vars:
-    enterprise_root_ca: "{{ lookup('file', enterprise_ca_cert_path | default(results_dir~'/certificates/ca.crt')) }}"
 
 - name: Set interfaces fact
   ansible.builtin.set_fact:
@@ -167,6 +165,8 @@
       admin_password: "{{ admin_password }}"
       mgmt_public_ip: "{{ eip_edge.results[0].public_ip }}"
       transport_public_ip: "{{ eip_edge.results[1].public_ip }}"
+      mgmt_public_ipv6: "{{ _created_mgmt_nic.ipv6_addresses[0].ipv6_address }}"
+      transport_public_ipv6: "{{ _created_transport_nic.ipv6_addresses[0].ipv6_address }}"
       service_interfaces: "{{ service_interfaces | default(omit) }}"
       uuid: "{{ uuid }}"
       site_id: "{{ site_id }}"
@@ -175,6 +175,9 @@
   retries: 3
   delay: 5
   until: _edge_facts is succeeded
+  vars:
+    _created_mgmt_nic: "{{ ec2_cedge.instances[0].network_interfaces | json_query('[?subnet_id==`'~aws_mgmt_subnet.id~'`]') | first }}"
+    _created_transport_nic: "{{ ec2_cedge.instances[0].network_interfaces | json_query('[?subnet_id==`'~aws_transport_subnet.id~'`]') | first }}"
 
 - name: Update deployment facts - that will be consumed by vManage-client in Ansible
   ansible.builtin.set_fact:
@@ -207,6 +210,12 @@
       - proto: all
         cidr_ip: "{{ eip_edge.results[1].public_ip }}/32"
         rule_desc: "{{ hostname }} - transport (VPN 0)"
+      - proto: all
+        cidr_ipv6: "{{ instance.mgmt_public_ipv6 }}/128"
+        rule_desc: "{{ hostname }} - mgmt IPv6 (VPN 512)"
+      - proto: all
+        cidr_ipv6: "{{ instance.transport_public_ipv6 }}/128"
+        rule_desc: "{{ hostname }} - transport IPv6 (VPN 0)"
     rules_egress: []
   register: allow_traffic
   retries: 3

@@ -19,12 +19,33 @@
       Machine: "{{ hostname }}"
       VPN: "{{ subnet_item.VPN }}"
       Subnet: "{{ subnet_item.name }}"
+    sku: standard
   loop:
     - "{{ mgmt_subnet }}"
     - "{{ transport_subnet }}"
   loop_control:
     loop_var: subnet_item
   register: public_ip_addresses
+
+- name: "Create public IPv6 addresses for machine: {{ hostname }}"
+  azure.azcollection.azure_rm_publicipaddress:
+    resource_group: "{{ az_resource_group }}"
+    allocation_method: static
+    name: "public-ipv6-{{ hostname }}-vpn-{{ subnet_item.VPN }}"
+    tags:
+      Name: "public-ipv6-{{ hostname }}"
+      Creator: "{{ az_tag_creator }}"
+      Machine: "{{ hostname }}"
+      VPN: "{{ subnet_item.VPN }}"
+      Subnet: "{{ subnet_item.name }}"
+    version: ipv6
+    sku: standard
+  loop:
+    - "{{ mgmt_subnet }}"
+    - "{{ transport_subnet }}"
+  loop_control:
+    loop_var: subnet_item
+  register: public_ipv6_addresses
 
 - name: "Get info about NSG: {{ az_network_security_group }}"
   azure.azcollection.azure_rm_securitygroup_info:
@@ -49,7 +70,7 @@
       Name: "{{ az_network_security_group }}"
       Creator: "{{ az_tag_creator }}"
       Organization: "{{ organization_name }}"
-  loop: "{{ public_ip_addresses.results }}"
+  loop: "{{ public_ip_addresses.results + public_ipv6_addresses.results }}"
   loop_control:
     loop_var: public_ip_state
     index_var: my_idx
@@ -67,6 +88,10 @@
       - name: "ipconfig-vpn-{{ public_ip_state.state.tags.VPN }}"
         public_ip_address_name: "{{ public_ip_state.state.name }}"
         private_ip_allocation_method: "Dynamic"
+      - name: "ipconfig-vpn-{{ public_ip_state.state.tags.VPN }}-ipv6"
+        public_ip_address_name: "{{ public_ipv6_addresses.results | json_query(_public_ip_query) | first }}"
+        private_ip_allocation_method: "Dynamic"
+        private_ip_address_version: IPv6
     tags:
       Name: "nic-{{ hostname }}-vpn-{{ public_ip_state.state.tags.VPN }}"
       Creator: "{{ az_tag_creator }}"
@@ -78,30 +103,41 @@
     index_var: my_idx
     label: public_ip_state.state.name
   register: vbond_nics
+  vars:
+    _public_ip_query: "[?to_number(state.tags.VPN)==`{{ public_ip_state.state.tags.VPN }}`].state.name"
 
 - name: Set az_network_interfaces_vbond fact with a list of interfaces for vBond
   ansible.builtin.set_fact:
     az_network_interfaces_vbond: "{{ vbond_nics.results | map(attribute='state') | list }}"
-    az_public_ip_addresses_vbond: "{{ public_ip_addresses.results | map(attribute='state') | list }}"
+    az_public_ip_addresses_vbond: "{{ (public_ip_addresses.results + public_ipv6_addresses.results) | map(attribute='state') | list }}"
 
 - name: Filter az_network_interfaces_vbond for instance creation. Set az_mgmt_nic and az_transport_nic facts
   ansible.builtin.set_fact:
     az_mgmt_nic: "{{ az_network_interfaces_vbond | selectattr('tags.VPN', 'equalto', '512') | list | first }}"
     az_transport_nic: "{{ az_network_interfaces_vbond | selectattr('tags.VPN', 'equalto', '0') | list | first }}"
-    az_mgmt_public_ip: "{{ az_public_ip_addresses_vbond | selectattr('tags.VPN', 'equalto', '512') | list | first }}"
-    az_transport_public_ip: "{{ az_public_ip_addresses_vbond | selectattr('tags.VPN', 'equalto', '0') | list | first }}"
+    az_mgmt_public_ip: "{{ _mgmt_public_ips | selectattr('public_ip_address_version', 'equalto', 'ipv4') | list | first }}"
+    az_transport_public_ip: "{{ _transport_public_ips | selectattr('public_ip_address_version', 'equalto', 'ipv4') | list | first }}"
+    az_mgmt_public_ipv6: "{{ _mgmt_public_ips | selectattr('public_ip_address_version', 'equalto', 'ipv6') | list | first }}"
+    az_transport_public_ipv6: "{{ _transport_public_ips | selectattr('public_ip_address_version', 'equalto', 'ipv6') | list | first }}"
+  vars:
+    _mgmt_public_ips: "{{ az_public_ip_addresses_vbond | selectattr('tags.VPN', 'equalto', '512') }}"
+    _transport_public_ips: "{{ az_public_ip_addresses_vbond | selectattr('tags.VPN', 'equalto', '0') }}"
 
 # vbond_mgmt_private_ip
 - name: "Set ip addresses vbond facts"
   ansible.builtin.set_fact:
-    vbond_mgmt_private_ip: "{{ az_mgmt_nic.ip_configuration.private_ip_address }}"
-    vbond_transport_private_ip: "{{ az_transport_nic.ip_configuration.private_ip_address }}"
+    vbond_mgmt_private_ip: "{{ (az_mgmt_nic.ip_configurations | json_query('[?private_ip_address_version==`IPv4`]') | first).private_ip_address }}"
+    vbond_mgmt_private_ipv6: "{{ (az_mgmt_nic.ip_configurations | json_query('[?private_ip_address_version==`IPv6`]') | first).private_ip_address }}"
+    vbond_transport_private_ip: "{{ (az_transport_nic.ip_configurations | json_query('[?private_ip_address_version==`IPv4`]') | first).private_ip_address }}"
+    vbond_transport_private_ipv6: "{{ (az_transport_nic.ip_configurations | json_query('[?private_ip_address_version==`IPv6`]') | first).private_ip_address }}"
     vbond_mgmt_public_ip: "{{ az_mgmt_public_ip.ip_address }}"
     vbond_transport_public_ip: "{{ az_transport_public_ip.ip_address }}"
+    vbond_mgmt_public_ipv6: "{{ az_mgmt_public_ipv6.ip_address }}"
+    vbond_transport_public_ipv6: "{{ az_transport_public_ipv6.ip_address }}"
 
 - name: "Set vpn0_default_gateway fact from VPN 0 subnet value"
   ansible.builtin.set_fact:
-    vpn0_default_gateway: "{{ subnet_item.cidr | ansible.utils.ipaddr('1') | ansible.utils.ipaddr('address') }}"
+    vpn0_default_gateway: "{{ subnet_item.cidr[0] | ansible.utils.ipaddr('1') | ansible.utils.ipaddr('address') }}"
   loop:
     - "{{ mgmt_subnet }}"
     - "{{ transport_subnet }}"
@@ -178,8 +214,25 @@
       admin_password: "{{ admin_password }}"
       mgmt_public_ip: "{{ vbond_mgmt_public_ip }}"
       transport_public_ip: "{{ vbond_transport_public_ip }}"
+      mgmt_public_ipv6: "{{ vbond_mgmt_public_ipv6 }}"
+      transport_public_ipv6: "{{ vbond_transport_public_ipv6 }}"
   changed_when: true
   notify: Show deployment_facts
+
+- name: DNS records
+  azure.azcollection.azure_rm_privatednsrecordset:
+    resource_group: "{{ az_resource_group }}"
+    zone_name: "{{ az_private_dns_zone }}"
+    relative_name: "vbond"
+    record_type: "{{ item.type }}"
+    records: "{{ item.records }}"
+  loop:
+    - type: 'A'
+      records:
+        - entry: "{{ vbond_transport_public_ip }}"
+    - type: 'AAAA'
+      records:
+        - entry: "{{ vbond_transport_public_ipv6 }}"
 
 - name: Update deployment facts - vBond - that will be consumed by vManage-client in Ansible
   ansible.builtin.set_fact:
