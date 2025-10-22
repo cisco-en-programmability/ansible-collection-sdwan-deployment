@@ -15,7 +15,7 @@
       ansible.builtin.set_fact:
         aws_hosted_zone: "{{ all_hosted_zones.hosted_zones | json_query('[?config.comment==`'~aws_vpc_id~'`]') | first }}"
 
-    - name: Gather recorrds from hosted zone
+    - name: Gather records from hosted zone
       amazon.aws.route53_info:
         hosted_zone_id: "{{ aws_hosted_zone.id }}"
         query: record_sets

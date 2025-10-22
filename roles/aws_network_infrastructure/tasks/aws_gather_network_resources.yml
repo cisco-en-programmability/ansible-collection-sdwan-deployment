@@ -62,7 +62,7 @@
   ansible.builtin.set_fact:
     aws_discovered_security_group: "{{ security_groups_info.security_groups[0] }}"
 
-- name: Gather information about all hosted zones in
+- name: Gather information about all hosted zones
   amazon.aws.route53_info:
     query: hosted_zone
   register: all_hosted_zones
