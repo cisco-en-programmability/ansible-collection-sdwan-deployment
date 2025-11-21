@@ -100,6 +100,7 @@ vmanage_instances: []
 az_vbond_vm_size: "Standard_F4s_v2"
 site_id_vbond: 200
 az_vbond_image_vhd_source: null
+vbond_transport_hostname: "vbond.{{ organization_name }}.internal"
 
 vbond_instances: []
   # - hostname: "{{ az_resources_prefix }}-vBond"
