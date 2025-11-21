@@ -220,7 +220,7 @@
 - name: "Set vmanage cluster related facts"
   ansible.builtin.set_fact:
     vmanage_cluster_private_ip: "{{ az_cluster_nic.ip_configuration.private_ip_address }}"
-    vmanage_cluster_prefix: "{{ cluster_subnet.cidr | ansible.utils.ipaddr('prefix') }}"
+    vmanage_cluster_prefix: "{{ cluster_subnet.cidr | ansible.utils.ipv4 | first | ansible.utils.ipaddr('prefix') }}"
   when:
     - az_cluster_nic is defined
     - cluster_subnet is defined
@@ -264,7 +264,7 @@
     admin_username: "{{ admin_username }}-tmp"  # Not included in cloud init
     admin_password: "{{ admin_password }}"
     managed_disk_type: "Premium_LRS"
-    os_disk_size_gb: 30
+    os_disk_size_gb: 60
     os_disk_name: "{{ hostname }}-os-disk"
     os_type: "Linux"
     os_disk_caching: "ReadWrite"
