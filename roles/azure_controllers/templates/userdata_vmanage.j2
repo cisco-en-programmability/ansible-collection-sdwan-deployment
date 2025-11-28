@@ -16,13 +16,13 @@ disk_setup:
     layout: false
     overwrite: false
 fs_setup:
-- device: /dev/sdc
+- device: /dev/disk/azure/scsi1/lun10
   label: data
   partition: none
   filesystem: ext4
   overwrite: false
 mounts:
-- [ /dev/sdc, /opt/data ]
+- [ /dev/disk/azure/scsi1/lun10, /opt/data ]
 
 write_files:
 - path: /opt/web-app/etc/persona
