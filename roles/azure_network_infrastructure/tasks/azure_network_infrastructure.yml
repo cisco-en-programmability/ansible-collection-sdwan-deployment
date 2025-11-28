@@ -124,7 +124,7 @@
       Name: "{{ az_network_security_group }}"
       Creator: "{{ az_tag_creator }}"
       Organization: "{{ organization_name }}"
-  when: az_nsg_block_edgess
+  when: az_nsg_block_egress
 
 - name: Create a private DNS zone
   azure.azcollection.azure_rm_privatednszone:

@@ -197,10 +197,6 @@
     purge_rules_egress: false
     rules: "{{ sg_rules_vbond }}"
     rules_egress: "{{ sg_rules_vbond if aws_sg_block_egress else [] }}"
-  register: allow_traffic
-  retries: 3
-  delay: 3
-  until: allow_traffic is succeeded
   vars:
     sg_rules_vbond:
       - proto: all
@@ -215,6 +211,10 @@
       - proto: all
         cidr_ipv6: "{{ instance.transport_public_ipv6 }}/128"
         rule_desc: "{{ hostname }} - transport IPv6 (VPN 0)"
+  register: allow_traffic
+  retries: 3
+  delay: 3
+  until: allow_traffic is succeeded
 
 - name: Create record in internal DNS zone
   amazon.aws.route53:

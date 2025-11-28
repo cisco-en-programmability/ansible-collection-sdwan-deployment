@@ -55,7 +55,7 @@ az_subnets: |
 
 # Security group
 az_network_security_group: "{{ az_resources_prefix }}-nsg"
-az_nsg_block_edgess: false
+az_nsg_block_egress: false
 
 
 # Private DNS zone

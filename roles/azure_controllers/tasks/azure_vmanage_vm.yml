@@ -60,7 +60,7 @@
   azure.azcollection.azure_rm_securitygroup:
     resource_group: "{{ az_resource_group }}"
     name: "{{ az_network_security_group }}"
-    rules: "{{ [inbound_rule, outbound_rule] if az_nsg_block_edgess else [inbound_rule] }}"
+    rules: "{{ [inbound_rule, outbound_rule] if az_nsg_block_egress else [inbound_rule] }}"
     tags:
       Name: "{{ az_network_security_group }}"
       Creator: "{{ az_tag_creator }}"
@@ -159,7 +159,7 @@
   azure.azcollection.azure_rm_securitygroup:
     resource_group: "{{ az_resource_group }}"
     name: "{{ az_network_security_group }}"
-    rules: "{{ [inbound_rule, outbound_rule] if az_nsg_block_edgess else [inbound_rule] }}"
+    rules: "{{ [inbound_rule, outbound_rule] if az_nsg_block_egress else [inbound_rule] }}"
     tags:
       Name: "{{ az_network_security_group }}"
       Creator: "{{ az_tag_creator }}"
