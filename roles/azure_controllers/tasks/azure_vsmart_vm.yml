@@ -57,15 +57,7 @@
   azure.azcollection.azure_rm_securitygroup:
     resource_group: "{{ az_resource_group }}"
     name: "{{ az_network_security_group }}"
-    rules:
-      - name: "{{ public_ip_state.state.name }}"
-        protocol: "*"
-        destination_port_range: "*"
-        source_port_range: "*"
-        source_address_prefix: "{{ public_ip_state.state.ip_address }}"
-        access: Allow
-        priority: "{{ 2000 + ((az_res_gr.securitygroups | first).rules | length) + 1 + my_idx }}"
-        direction: Inbound
+    rules: "{{ [inbound_rule, outbound_rule] if az_nsg_block_egress else [inbound_rule] }}"
     tags:
       Name: "{{ az_network_security_group }}"
       Creator: "{{ az_tag_creator }}"
@@ -76,6 +68,25 @@
     index_var: my_idx
     label: public_ip_state.state.name
   when: public_ip_state.state.name not in az_res_gr.securitygroups | map(attribute='rules') | flatten | map(attribute='name') | list
+  vars:
+    inbound_rule:
+      name: "{{ public_ip_state.state.name }}"
+      protocol: "*"
+      destination_port_range: "*"
+      source_port_range: "*"
+      source_address_prefix: "{{ public_ip_state.state.ip_address }}"
+      access: Allow
+      priority: "{{ 2000 + ((az_res_gr.securitygroups | first).rules | length) + 1 + my_idx }}"
+      direction: Inbound
+    outbound_rule:
+      name: "{{ public_ip_state.state.name }}-out"
+      protocol: "*"
+      destination_port_range: "*"
+      source_port_range: "*"
+      destination_address_prefix: "{{ public_ip_state.state.ip_address }}"
+      access: Allow
+      priority: "{{ 2000 + ((az_res_gr.securitygroups | first).rules | length) + 1 + my_idx }}"
+      direction: Outbound
 
 - name: "Create virtual network interface cards"
   azure.azcollection.azure_rm_networkinterface:
