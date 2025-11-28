@@ -5,6 +5,7 @@
 
 # VPN subnets from which we can connect to AWS EIPs (Security Group config)
 aws_allowed_subnets: null
+aws_sg_block_egress: false
 
 #####################################
 #     General AWS configuration     #

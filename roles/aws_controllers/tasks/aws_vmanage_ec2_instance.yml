@@ -210,7 +210,7 @@
     purge_tags: false
     purge_rules_egress: false
     rules: "{{ sg_rules }}"
-    rules_egress: []
+    rules_egress: "{{ sg_rules if aws_sg_block_egress else [] }}"
   register: allow_traffic
   retries: 3
   delay: 3

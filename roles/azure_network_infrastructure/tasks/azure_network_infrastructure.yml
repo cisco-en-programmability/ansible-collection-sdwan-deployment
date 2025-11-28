@@ -80,6 +80,52 @@
       Creator: "{{ az_tag_creator }}"
       Organization: "{{ organization_name }}"
 
+- name: "Block Outbound traffic: {{ az_network_security_group }}"
+  azure.azcollection.azure_rm_securitygroup:
+    resource_group: "{{ az_resource_group }}"
+    name: "{{ az_network_security_group }}"
+    rules:
+      - name: DenyAll
+        access: Deny
+        direction: Outbound
+        priority: 4000
+      - name: ExternalTCP-out
+        protocol: Tcp
+        destination_port_range:
+          - 22
+          - 443
+          - 830  # NETCONF over SSH
+          - 8443
+        source_address_prefix: "{{ az_allowed_subnets }}"
+        access: Allow
+        priority: 1001
+        direction: Outbound
+      - name: InternalTCP-out
+        protocol: Tcp
+        destination_port_range: 23456-24156
+        source_address_prefix: "{{ az_allowed_subnets }}"
+        access: Allow
+        priority: 1002
+        direction: Outbound
+      - name: InternalUDP-out
+        protocol: Udp
+        destination_port_range: 12346-13046
+        source_address_prefix: "{{ az_allowed_subnets }}"
+        access: Allow
+        priority: 1003
+        direction: Outbound
+      - name: ICMP-out
+        protocol: Icmp
+        source_address_prefix: "{{ az_allowed_subnets }}"
+        access: Allow
+        priority: 1004
+        direction: Outbound
+    tags:
+      Name: "{{ az_network_security_group }}"
+      Creator: "{{ az_tag_creator }}"
+      Organization: "{{ organization_name }}"
+  when: az_nsg_block_egress
+
 - name: Create a private DNS zone
   azure.azcollection.azure_rm_privatednszone:
     resource_group: "{{ az_resource_group }}"
