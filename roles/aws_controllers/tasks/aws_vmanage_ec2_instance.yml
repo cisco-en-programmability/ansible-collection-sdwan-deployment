@@ -19,13 +19,13 @@
     root_device_name: /dev/xvda
     device_mapping:
       - device_name: /dev/xvda
-        snapshot_id: "{{ volume_snapshots[0] }}"
+        snapshot_id: "{{ root_snapshot_id }}"
         delete_on_termination: true
         volume_type: gp2
     tags:
       Name: "{{ aws_tag_creator }}-Manager"
       Creator: "{{ aws_tag_creator }}"
-  when: volume_snapshots
+  when: root_snapshot_id
   register: ami_result
 
 # NICs
@@ -134,7 +134,7 @@
     count: 1
     instance_type: "{{ aws_vmanage_instance_type }}"
     image:
-      id: "{{ ami_result.image_id if volume_snapshots else aws_vmanage_ami_id }}"
+      id: "{{ ami_result.image_id if root_snapshot_id else aws_vmanage_ami_id }}"
     state: present
     vpc_subnet_id: "{{ aws_mgmt_subnet.id }}"
     region: "{{ aws_region }}"
@@ -156,7 +156,7 @@
         ebs:
           volume_size: 60
           delete_on_termination: true
-          snapshot_id: "{{ volume_snapshots[1] if volume_snapshots else omit }}"
+          snapshot_id: "{{ data_snapshot_id if data_snapshot_id else omit }}"
   register: ec2_vmanage
 
 - name: Deregister/Delete AMI (keep associated snapshots)
@@ -165,7 +165,7 @@
     delete_snapshot: false
     state: absent
     region: "{{ aws_region }}"
-  when: volume_snapshots
+  when: root_snapshot_id
 
 - name: Store vManage instance details for deployment_results
   ansible.builtin.set_fact:

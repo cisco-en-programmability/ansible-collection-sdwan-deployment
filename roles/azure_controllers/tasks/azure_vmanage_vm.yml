@@ -276,16 +276,16 @@
     location: "{{ az_location }}"
     os_type: "Linux"
     hyper_v_generation: "V1"
-    source: "{{ volume_snapshots[0] if volume_snapshots else az_vmanage_image_vhd_source }}"
+    source: "{{ root_snapshot_id if root_snapshot_id else az_vmanage_image_vhd_source }}"
 
 - name: "Create an image from a VHD for vManage: {{ hostname }}-image"
   azure.azcollection.azure_rm_manageddisk:
     resource_group: "{{ az_resource_group }}"
     name: "{{ hostname }}-datadisk1"
     location: "{{ az_location }}"
-    source_uri: "{{ volume_snapshots[1] }}"
+    source_uri: "{{ data_snapshot_id }}"
     create_option: copy
-  when: volume_snapshots
+  when: root_snapshot_id
   register: datadisk_info
 
 - name: "Create VM for vmanage: {{ hostname }}"
@@ -313,7 +313,7 @@
         disk_size_gb: 100
         managed_disk_type: Premium_LRS
         storage_container_name: "{{ hostname }}-datadisk1"
-        managed_disk_id: "{{ datadisk_info.state.id if volume_snapshots else omit }}"
+        managed_disk_id: "{{ datadisk_info.state.id if root_snapshot_id else omit }}"
     tags:
       Name: "{{ hostname }}"
       Creator: "{{ az_tag_creator }}"
