@@ -171,7 +171,10 @@
     purge_rules: false
     purge_tags: false
     purge_rules_egress: false
-    rules:
+    rules: "{{ sg_rules_vsmart }}"
+    rules_egress: "{{ sg_rules_vsmart if aws_sg_block_egress else [] }}"
+  vars:
+    sg_rules_vsmart:
       - proto: all
         cidr_ip: "{{ eip_vsmart.results[0].public_ip }}/32"
         rule_desc: "{{ hostname }} - mgmt (VPN 512)"
@@ -184,7 +187,6 @@
       - proto: all
         cidr_ipv6: "{{ instance.transport_public_ipv6 }}/128"
         rule_desc: "{{ hostname }} - transport IPv6 (VPN 0)"
-    rules_egress: []
   register: allow_traffic
   retries: 3
   delay: 3
