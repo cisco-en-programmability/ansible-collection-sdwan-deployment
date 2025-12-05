@@ -53,6 +53,7 @@
     hostname: "{{ instance_item.hostname }}"
     system_ip: "{{ instance_item.system_ip }}"
     site_id: "{{ instance_item.site_id }}"
+    root_snapshot_id: "{{ instance_item.root_snapshot_id | default('') }}"
   loop: "{{ vbond_instances }}"
   loop_control:
     loop_var: instance_item
@@ -101,6 +102,7 @@
     hostname: "{{ instance_item.hostname }}"
     system_ip: "{{ instance_item.system_ip }}"
     site_id: "{{ instance_item.site_id }}"
+    root_snapshot_id: "{{ instance_item.root_snapshot_id | default('') }}"
   loop: "{{ vsmart_instances }}"
   loop_control:
     loop_var: instance_item
@@ -113,6 +115,8 @@
     system_ip: "{{ instance_item.system_ip }}"
     site_id: "{{ instance_item.site_id }}"
     persona: "{{ instance_item.persona }}"
+    root_snapshot_id: "{{ instance_item.root_snapshot_id | default('') }}"
+    data_snapshot_id: "{{ instance_item.data_snapshot_id | default('') }}"
   loop: "{{ vmanage_instances }}"
   loop_control:
     loop_var: instance_item

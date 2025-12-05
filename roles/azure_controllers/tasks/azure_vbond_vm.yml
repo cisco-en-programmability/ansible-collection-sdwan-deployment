@@ -183,7 +183,7 @@
     location: "{{ az_location }}"
     os_type: "Linux"
     hyper_v_generation: "V1"
-    source: "{{ az_vbond_image_vhd_source }}"
+    source: "{{ root_snapshot_id if root_snapshot_id else az_vbond_image_vhd_source }}"
 
 - name: "Create vBond VM: {{ hostname }}"
   azure.azcollection.azure_rm_virtualmachine:
