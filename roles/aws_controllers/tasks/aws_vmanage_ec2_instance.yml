@@ -9,6 +9,24 @@
 # 2 aws_eip
 # 1 ec2 instance
 
+- name: AMI Registration from EBS Snapshot
+  amazon.aws.ec2_ami:
+    name: "{{ aws_tag_creator }}-Manager"
+    region: "{{ aws_region }}"
+    state: present
+    architecture: x86_64
+    virtualization_type: hvm
+    root_device_name: /dev/xvda
+    device_mapping:
+      - device_name: /dev/xvda
+        snapshot_id: "{{ root_snapshot_id }}"
+        delete_on_termination: true
+        volume_type: gp2
+    tags:
+      Name: "{{ aws_tag_creator }}-Manager"
+      Creator: "{{ aws_tag_creator }}"
+  when: root_snapshot_id
+  register: ami_result
 
 # NICs
 - name: Filter required subnets for instance creation. Set aws_mgmt_subnet and aws_transport_subnet facts
@@ -26,6 +44,7 @@
     description: Network interface for SD-WAN Controller
     security_groups: "{{ aws_security_group_config.group_id }}"
     region: "{{ aws_region }}"
+    private_ip_address: "{{ cluster_private_ip if subnet_item.tags.Name | regex_search('cluster') and cluster_private_ip else omit }}"
     tags:
       Name: "nic-{{ subnet_item.tags.Name }}"
       Creator: "{{ aws_tag_creator }}"
@@ -115,7 +134,7 @@
     count: 1
     instance_type: "{{ aws_vmanage_instance_type }}"
     image:
-      id: "{{ aws_vmanage_ami_id }}"
+      id: "{{ ami_result.image_id if root_snapshot_id else aws_vmanage_ami_id }}"
     state: present
     vpc_subnet_id: "{{ aws_mgmt_subnet.id }}"
     region: "{{ aws_region }}"
@@ -137,7 +156,16 @@
         ebs:
           volume_size: 60
           delete_on_termination: true
+          snapshot_id: "{{ data_snapshot_id if data_snapshot_id else omit }}"
   register: ec2_vmanage
+
+- name: Deregister/Delete AMI (keep associated snapshots)
+  amazon.aws.ec2_ami:
+    image_id: "{{ ami_result.image_id }}"
+    delete_snapshot: false
+    state: absent
+    region: "{{ aws_region }}"
+  when: root_snapshot_id
 
 - name: Store vManage instance details for deployment_results
   ansible.builtin.set_fact:
