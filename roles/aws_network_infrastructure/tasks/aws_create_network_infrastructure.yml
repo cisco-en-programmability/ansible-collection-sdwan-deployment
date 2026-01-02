@@ -107,6 +107,8 @@
     routes:
       - dest: 0.0.0.0/0
         gateway_id: "{{ _created_igw.gateway_id }}"
+      - dest: ::/0
+        gateway_id: "{{ _created_igw.gateway_id }}"
     region: "{{ aws_region }}"
   register: _created_route_table
   loop: "{{ aws_registered_subnets }}"
