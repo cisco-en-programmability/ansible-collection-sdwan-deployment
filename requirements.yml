@@ -2,6 +2,6 @@
 
 collections:
   - name: amazon.aws
-    version: 6.5.0
+    version: 11.4.0
   - name: azure.azcollection
-    version: 1.19.0
+    version: 3.21.0
