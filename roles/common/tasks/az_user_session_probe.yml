@@ -2,9 +2,11 @@
 
 ---
 
-# Verify if user session is active
-- name: Get Azure caller facts
-  azure.azcollection.azure_rm_account_info:
+# Verify that Resource Manager accepts the active Azure session. The account
+# info module queries Microsoft Graph's /me endpoint, which is not available to
+# every CLI-backed enterprise session and does not reflect deployment access.
+- name: Probe Azure Resource Manager access
+  azure.azcollection.azure_rm_resourcegroup_info:
   register: az_facts
   ignore_errors: true
 
@@ -15,5 +17,5 @@
 
 - name: Fail if Azure connection is not active
   ansible.builtin.fail:
-    msg: "Azure connection is not active or not congigured. Original message: {{ az_facts.msg }}"
+    msg: "Azure connection is not active or not configured. Original message: {{ az_facts.msg }}"
   when: az_facts is failed

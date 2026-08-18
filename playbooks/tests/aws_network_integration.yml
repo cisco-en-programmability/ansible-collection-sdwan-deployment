@@ -1,0 +1,37 @@
+---
+- name: Validate AWS network infrastructure lifecycle
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    integration_test_prefix: "{{ lookup('ansible.builtin.env', 'SDWAN_DEPLOYMENT_TEST_PREFIX') }}"
+    integration_test_state: "{{ lookup('ansible.builtin.env', 'SDWAN_DEPLOYMENT_TEST_STATE') | default('present', true) }}"
+    integration_test_confirmation: "{{ lookup('ansible.builtin.env', 'SDWAN_ALLOW_CLOUD_TEST') }}"
+    organization_name: "{{ integration_test_prefix }}"
+    aws_resources_prefix: "{{ integration_test_prefix }}"
+    aws_region: "{{ lookup('ansible.builtin.env', 'AWS_REGION') | default('us-west-2', true) }}"
+    aws_allowed_subnets:
+      - 192.0.2.0/24
+    aws_teardown_require_confirmation: false
+    tenants: []
+    wan_edges: []
+  pre_tasks:
+    - name: Guard disposable cloud mutations
+      ansible.builtin.assert:
+        that:
+          - integration_test_confirmation == 'I_UNDERSTAND_THIS_CREATES_CLOUD_RESOURCES'
+          - integration_test_prefix is match('^codex-sdwan-[a-z0-9-]+$')
+          - integration_test_state in ['present', 'absent']
+        fail_msg: >-
+          Set SDWAN_ALLOW_CLOUD_TEST=I_UNDERSTAND_THIS_CREATES_CLOUD_RESOURCES,
+          use a unique codex-sdwan-* prefix, and select state present or absent.
+  tasks:
+    - name: Create disposable AWS network resources
+      ansible.builtin.include_role:
+        name: aws_network_infrastructure
+      when: integration_test_state == 'present'
+
+    - name: Remove disposable AWS network resources
+      ansible.builtin.include_role:
+        name: aws_teardown
+      when: integration_test_state == 'absent'

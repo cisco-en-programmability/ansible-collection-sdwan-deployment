@@ -1,0 +1,37 @@
+---
+- name: Validate Azure network infrastructure lifecycle
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    integration_test_prefix: "{{ lookup('ansible.builtin.env', 'SDWAN_DEPLOYMENT_TEST_PREFIX') }}"
+    integration_test_state: "{{ lookup('ansible.builtin.env', 'SDWAN_DEPLOYMENT_TEST_STATE') | default('present', true) }}"
+    integration_test_confirmation: "{{ lookup('ansible.builtin.env', 'SDWAN_ALLOW_CLOUD_TEST') }}"
+    organization_name: "{{ integration_test_prefix }}"
+    az_resources_prefix: "{{ integration_test_prefix }}"
+    az_location: "{{ lookup('ansible.builtin.env', 'AZURE_LOCATION') | default('westus2', true) }}"
+    az_allowed_subnets:
+      - 192.0.2.0/24
+    tenants: []
+    wan_edges: []
+    results_dir: "/tmp/{{ integration_test_prefix }}"
+  pre_tasks:
+    - name: Guard disposable cloud mutations
+      ansible.builtin.assert:
+        that:
+          - integration_test_confirmation == 'I_UNDERSTAND_THIS_CREATES_CLOUD_RESOURCES'
+          - integration_test_prefix is match('^codex-sdwan-[a-z0-9-]+$')
+          - integration_test_state in ['present', 'absent']
+        fail_msg: >-
+          Set SDWAN_ALLOW_CLOUD_TEST=I_UNDERSTAND_THIS_CREATES_CLOUD_RESOURCES,
+          use a unique codex-sdwan-* prefix, and select state present or absent.
+  tasks:
+    - name: Create disposable Azure network resources
+      ansible.builtin.include_role:
+        name: azure_network_infrastructure
+      when: integration_test_state == 'present'
+
+    - name: Remove disposable Azure network resources
+      ansible.builtin.include_role:
+        name: azure_teardown
+      when: integration_test_state == 'absent'

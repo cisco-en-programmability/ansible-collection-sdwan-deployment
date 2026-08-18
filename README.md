@@ -258,6 +258,36 @@ The provider compatibility workflow validates that every AWS and Azure module
 used by this collection is still present in the pinned provider collections.
 Provider Python dependencies are tested on Python 3.12-3.14.
 
+### Disposable Azure integration test
+
+Maintainers can exercise the real Azure network-resource lifecycle with the
+guarded playbook at `playbooks/tests/azure_network_integration.yml`. Use a
+unique `codex-sdwan-*` prefix and run `present` twice to verify idempotence,
+then always run `absent` to remove the resource group. The playbook refuses to
+mutate Azure unless `SDWAN_ALLOW_CLOUD_TEST` is set to
+`I_UNDERSTAND_THIS_CREATES_CLOUD_RESOURCES`.
+
+The equivalent guarded AWS lifecycle test is
+`playbooks/tests/aws_network_integration.yml`. It uses the same confirmation
+variable, unique-prefix requirement, and `present`/`absent` lifecycle.
+
+For example, after authenticating the provider CLI:
+
+```bash
+export SDWAN_ALLOW_CLOUD_TEST=I_UNDERSTAND_THIS_CREATES_CLOUD_RESOURCES
+export SDWAN_DEPLOYMENT_TEST_PREFIX=codex-sdwan-unique-run-id
+export SDWAN_DEPLOYMENT_TEST_STATE=present
+ansible-playbook playbooks/tests/azure_network_integration.yml
+
+# Repeat the present run and require changed=0, then clean up.
+export SDWAN_DEPLOYMENT_TEST_STATE=absent
+ansible-playbook playbooks/tests/azure_network_integration.yml
+```
+
+Use `aws_network_integration.yml` instead for AWS and set `AWS_REGION` as
+needed. The AWS integration playbook disables the role's interactive teardown
+prompt only after its own explicit mutation guard succeeds.
+
 ---
 
 ## Useful links

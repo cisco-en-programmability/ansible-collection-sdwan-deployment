@@ -7,6 +7,7 @@ organization_name: null
 teardown_resources_data_path: "{{ playbook_dir }}/aws_resources_teardown.json"
 teardown_only_instances: false
 teardown_specific_instances: false
+aws_teardown_require_confirmation: true
 
 
 #####################################

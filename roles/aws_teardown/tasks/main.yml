@@ -7,10 +7,13 @@
   ansible.builtin.pause:
     prompt: Do you want to continue? (yes/no) [yes]
   register: user_response
+  when: aws_teardown_require_confirmation
 
 - name: Stop teardown if user response is 'no'
   ansible.builtin.meta: end_play
-  when: user_response.user_input | default('yes') | lower == 'no'
+  when:
+    - aws_teardown_require_confirmation
+    - user_response.user_input | default('yes') | lower == 'no'
 
 - name: Verify if user session with AWS is active
   ansible.builtin.include_role:
@@ -41,7 +44,7 @@
     aws_vpc_region: "{{ aws_vpc_region | default([]) + [{'vpc_id': _vpc.vpcs[0].id, 'region': _vpc._region}] }}"
   loop:
     "{{ vpc_info.results }}"
-  when: _vpc.vpcs
+  when: _vpc.vpcs | length > 0
   loop_control:
     label: "{{ _vpc._region }}"
     loop_var: _vpc
@@ -66,7 +69,7 @@
     aws_vpc_region: "{{ aws_vpc_region | default([]) + [{'vpc_id': _vpc.vpcs[0].id, 'region': aws_region}] }}"
   loop:
     "{{ vpc_info.results }}"
-  when: _vpc.vpcs
+  when: _vpc.vpcs | length > 0
   loop_control:
     label: "{{ _vpc._tenant.org_name }}"
     loop_var: _vpc

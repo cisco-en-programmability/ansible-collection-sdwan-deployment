@@ -9,9 +9,10 @@
       - boto3>=1.29.2
   register: requirements_result
 
-- name: Assert that required boto3 versions is used
+- name: Assert that the required boto3 version is used
   ansible.builtin.assert:
-    that: "{{ requirements_result.mismatched | length == 0 }}"
+    that:
+      - requirements_result.mismatched | length == 0
     fail_msg: |
       "Your environment is using mismatched dependencies: {{ requirements_result.mismatched }}"
       "Please verify your environment in order to proceed."
