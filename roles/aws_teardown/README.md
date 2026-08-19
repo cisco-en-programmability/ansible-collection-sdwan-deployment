@@ -26,7 +26,7 @@ This role provides a systematic approach to tearing down AWS resources, with a s
 
 ## Dependencies
 
-- A role named cisco.sdwan_deployment.common`  that includes tasks for probing the user's AWS session.
+- A role named `cisco.sdwan_deployment.common` that includes tasks for probing the user's AWS session.
 
 ## Role Variables
 
@@ -36,6 +36,8 @@ This role provides a systematic approach to tearing down AWS resources, with a s
 - `teardown_resources_data_path`: Path where the teardown data JSON file will be stored.
 - `teardown_only_instances`: Boolean value to indicate if only EC2 instances should be torn down.
 - `teardown_specific_instances`: Boolean value to indicate if specific EC2 instances should be torn down.
+- `aws_teardown_require_confirmation`: Whether to prompt before teardown. It defaults to `true`;
+  disable it only when an enclosing workflow provides an equivalent explicit safety guard.
 - `aws_region`: AWS region where resources were deployed.
 - `aws_vpc_name`, `aws_security_group_name`: Names for the VPC and security group to be removed.
 
@@ -43,7 +45,7 @@ This role provides a systematic approach to tearing down AWS resources, with a s
 
 See [Example playbooks](https://github.com/cisco-en-programmability/ansible-collection-sdwan-deployment/tree/main/playbooks).
 
-These playbook reuse configuration files that might be used as example for your configuration
+These playbooks reuse configuration files that can serve as examples for your configuration.
 
 ## License
 

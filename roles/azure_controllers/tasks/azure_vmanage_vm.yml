@@ -144,7 +144,7 @@
   register: cluster_vmanage_nic
   when:
     - cluster_subnet is defined
-    - cluster_subnet != ""
+    - cluster_subnet | length > 0
 
 - name: "Get info about NSG: {{ az_network_security_group }}"
   azure.azcollection.azure_rm_securitygroup_info:
@@ -153,7 +153,7 @@
   register: az_res_gr
   when:
     - cluster_subnet is defined
-    - cluster_subnet != ""
+    - cluster_subnet | length > 0
 
 - name: "Extend Network Security Group for cluster deployment. NSG: {{ az_network_security_group }}"
   azure.azcollection.azure_rm_securitygroup:
@@ -166,7 +166,7 @@
       Organization: "{{ organization_name }}"
   when:
     - cluster_subnet is defined
-    - cluster_subnet != ""
+    - cluster_subnet | length > 0
   vars:
     inbound_rule:
       name: "{{ cluster_vmanage_nic.state.name }}"

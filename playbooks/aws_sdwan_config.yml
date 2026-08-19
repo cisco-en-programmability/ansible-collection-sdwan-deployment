@@ -117,11 +117,6 @@ vsmart_instances:
   - hostname: "{{ aws_resources_prefix }}-vSmart"
     system_ip: 192.168.2.1
     site_id: "{{ site_id_vsmart }}"
-
-
-
-
-
 ################################
 #          Edge devices        #
 ################################

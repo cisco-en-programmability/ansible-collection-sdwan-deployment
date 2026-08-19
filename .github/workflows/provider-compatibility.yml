@@ -1,0 +1,40 @@
+name: Provider compatibility
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  load-used-provider-modules:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+
+      - name: Install the maintained automation stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          ansible-galaxy collection install -r requirements.yml --force -p .ansible/collections
+          python -m pip install --pre \
+            -r .ansible/collections/ansible_collections/azure/azcollection/requirements.txt
+
+      - name: Load every provider module used by the collection
+        env:
+          ANSIBLE_COLLECTIONS_PATH: "${{ github.workspace }}/.ansible/collections"
+        run: |
+          for fqcn in $(rg -o --no-filename \
+            '(amazon\.aws|azure\.azcollection)\.[a-zA-Z0-9_]+' roles playbooks | sort -u); do
+            ansible-doc --type module "$fqcn" >/dev/null
+          done

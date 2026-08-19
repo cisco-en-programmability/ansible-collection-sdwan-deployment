@@ -74,11 +74,13 @@ Future Goals:
 
 ## Requirements
 
-This collection is based on `ansible-core==2.16.6`, see [ansible-core-support-matrix](https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-core-support-matrix).
+The maintained stack is tested with Ansible 14.3.1 (ansible-core 2.21.3) on
+Python 3.12-3.14. See the
+[ansible-core support matrix](https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-core-support-matrix).
 
 Before you begin, ensure you have met the following requirements:
 
-- You have installed Python 3.10 - 3.12
+- You have installed Python 3.12-3.14
 - You have an AWS or Azure account with the necessary permissions
 - You have access to a Cisco SD-WAN AMIs on AWS or images on Azure
 
@@ -88,6 +90,14 @@ The python module dependencies are not installed by ansible-galaxy. They can be 
 
 ```bash
 pip install -r requirements.txt
+```
+
+For Azure deployments, install the Python requirements shipped with the
+installed `azure.azcollection` collection. Its current dependency set contains
+a pinned prerelease package, so allow prereleases explicitly:
+
+```bash
+python -m pip install --pre -r ~/.ansible/collections/ansible_collections/azure/azcollection/requirements.txt
 ```
 
 ---
@@ -104,13 +114,13 @@ In `requirements.yml` inside your project add:
   version: main
 ```
 
-Note: If you are not using full ansible installation, you might install also `aws.collection` and `azure.azcollection` by adding:
+Note: If you are not using the full Ansible package, also install `amazon.aws` and `azure.azcollection` by adding:
 
 ```yml
   - name: amazon.aws
-    version: 6.5.0
+    version: 11.4.0
   - name: azure.azcollection
-    version: 1.19.0
+    version: 3.21.0
 ```
 
 to `requirements.yml` inside your project.
@@ -244,9 +254,39 @@ If vManage is not starting NMS service:
 
 ## Compatibility
 
-Note that azure collection python requirements include package `uamqp` which can generate wheel issues.
-For MacOS you migth install cmake: `brew install cmake` and: `pip install cmake`.
-Then install working `uamqp` package (which is below `v1.6.9`) with: `pip install uamqp==1.6.8`.
+The provider compatibility workflow validates that every AWS and Azure module
+used by this collection is still present in the pinned provider collections.
+Provider Python dependencies are tested on Python 3.12-3.14.
+
+### Disposable Azure integration test
+
+Maintainers can exercise the real Azure network-resource lifecycle with the
+guarded playbook at `playbooks/tests/azure_network_integration.yml`. Use a
+unique `codex-sdwan-*` prefix and run `present` twice to verify idempotence,
+then always run `absent` to remove the resource group. The playbook refuses to
+mutate Azure unless `SDWAN_ALLOW_CLOUD_TEST` is set to
+`I_UNDERSTAND_THIS_CREATES_CLOUD_RESOURCES`.
+
+The equivalent guarded AWS lifecycle test is
+`playbooks/tests/aws_network_integration.yml`. It uses the same confirmation
+variable, unique-prefix requirement, and `present`/`absent` lifecycle.
+
+For example, after authenticating the provider CLI:
+
+```bash
+export SDWAN_ALLOW_CLOUD_TEST=I_UNDERSTAND_THIS_CREATES_CLOUD_RESOURCES
+export SDWAN_DEPLOYMENT_TEST_PREFIX=codex-sdwan-unique-run-id
+export SDWAN_DEPLOYMENT_TEST_STATE=present
+ansible-playbook playbooks/tests/azure_network_integration.yml
+
+# Repeat the present run and require changed=0, then clean up.
+export SDWAN_DEPLOYMENT_TEST_STATE=absent
+ansible-playbook playbooks/tests/azure_network_integration.yml
+```
+
+Use `aws_network_integration.yml` instead for AWS and set `AWS_REGION` as
+needed. The AWS integration playbook disables the role's interactive teardown
+prompt only after its own explicit mutation guard succeeds.
 
 ---
 

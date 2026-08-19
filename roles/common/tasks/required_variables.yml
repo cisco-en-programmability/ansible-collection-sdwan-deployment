@@ -6,10 +6,8 @@
 - name: Assert that required variables are provided
   ansible.builtin.assert:
     that:
-      - variable.value
       - variable.value is defined
       - variable.value is not none
-      - variable.value != None
       - variable.value != "None"
       - variable.value != ""
       - variable.value | length > 0

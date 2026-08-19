@@ -9,7 +9,7 @@
   register: all_hosted_zones
 
 - name: Delete found hosted zone
-  when: all_hosted_zones.hosted_zones | json_query('[?config.comment==`'~aws_vpc_id~'`]')
+  when: all_hosted_zones.hosted_zones | json_query('[?config.comment==`' ~ aws_vpc_id ~ '`]') | length > 0
   block:
     - name: Set hosted zones fact
       ansible.builtin.set_fact:
