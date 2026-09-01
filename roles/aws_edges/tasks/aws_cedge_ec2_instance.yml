@@ -102,7 +102,7 @@
   ansible.builtin.template:
     src: ./bootstrap_cedge.j2
     dest: "{{ userdata_cedge_templated }}"
-    mode: "0644"
+    mode: "0600"
 
 - name: Set interfaces fact
   ansible.builtin.set_fact:
@@ -195,7 +195,7 @@
   ansible.builtin.blockinfile:
     create: true
     state: present
-    mode: "0644"
+    mode: "0600"
     insertafter: EOF
     dest: "{{ aws_deployed_edges_data }}"
     marker: "\n--------------    ec2 Edge   --------------\n"

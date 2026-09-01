@@ -36,7 +36,7 @@
   ansible.builtin.blockinfile:
     create: true
     state: present
-    mode: "0644"
+    mode: "0600"
     insertafter: EOF
     dest: "{{ results_path_controllers }}"
     marker: "# {mark} ansible generated data"

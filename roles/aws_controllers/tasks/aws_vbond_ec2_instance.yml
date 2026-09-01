@@ -105,7 +105,7 @@
   ansible.builtin.template:
     src: ./userdata_vbond.j2
     dest: "{{ generated_userdata_vbond }}"
-    mode: "0644"
+    mode: "0600"
 
 
 # vBond
@@ -180,7 +180,7 @@
   ansible.builtin.blockinfile:
     create: true
     state: present
-    mode: "0644"
+    mode: "0600"
     insertafter: EOF
     dest: "{{ aws_deployed_controllers_data }}"
     marker: "\n--------------    ec2 vBond   --------------\n"

@@ -101,7 +101,7 @@
   ansible.builtin.template:
     src: ./userdata_vsmart.j2
     dest: "{{ generated_userdata_vsmart }}"
-    mode: "0644"
+    mode: "0600"
 
 
 # vManage
@@ -182,7 +182,7 @@
   ansible.builtin.blockinfile:
     create: true
     state: present
-    mode: "0644"
+    mode: "0600"
     insertafter: EOF
     dest: "{{ aws_deployed_controllers_data }}"
     marker: "\n--------------    ec2 vsmart   --------------\n"
