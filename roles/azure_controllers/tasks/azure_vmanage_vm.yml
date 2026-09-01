@@ -266,7 +266,7 @@
   ansible.builtin.template:
     src: ./userdata_vmanage.j2
     dest: "{{ generated_userdata_vmanage }}"
-    mode: "0644"
+    mode: "0600"
 
 
 - name: "Create an image from a VHD for vManage: {{ hostname }}-image"

@@ -165,7 +165,7 @@
   ansible.builtin.template:
     src: ./userdata_vbond.j2  # ./bond.j2 ./userdata_vbond.j2
     dest: "{{ generated_userdata_vbond }}"
-    mode: "0644"
+    mode: "0600"
 
 # # Note for image:
 

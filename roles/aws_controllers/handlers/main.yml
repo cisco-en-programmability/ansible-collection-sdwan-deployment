@@ -4,3 +4,4 @@
 - name: Show deployment_facts
   ansible.builtin.debug:
     msg: "{{ deployment_facts }}"
+  no_log: true

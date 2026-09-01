@@ -185,7 +185,7 @@
   ansible.builtin.template:
     src: ./userdata_cedge.j2  # ./bond.j2 ./userdata_cedge.j2
     dest: "{{ generated_userdata_cedge }}"
-    mode: "0644"
+    mode: "0600"
 
 - name: "Set network_interfaces fact"
   ansible.builtin.set_fact:
