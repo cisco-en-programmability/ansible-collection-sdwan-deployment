@@ -74,7 +74,7 @@ Future Goals:
 
 ## Requirements
 
-The maintained stack is tested with Ansible 14.3.1 (ansible-core 2.21.3) on
+The maintained stack is tested with Ansible 14.4.0 (ansible-core 2.21.4) on
 Python 3.12-3.14. See the
 [ansible-core support matrix](https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-core-support-matrix).
 
